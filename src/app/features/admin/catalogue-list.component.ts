@@ -51,6 +51,7 @@ export class CatalogueListComponent implements OnInit {
     { field: 'code', header: 'Code', valueGetter: (p) => p.code_produit, cellClass: 'font-medium text-sm' },
     {
       field: 'designation', header: 'Désignation',
+      type: 'link', routerLink: (p) => ['/admin/catalogue', p.produit_id],
       valueGetter: (p) => `${p.designation}\n${p.dci ? p.dci + ' ' + (p.dosage || '') : ''}`,
       cellClass: 'font-medium font-pre-wrap'
     },
@@ -73,7 +74,7 @@ export class CatalogueListComponent implements OnInit {
   ];
 
   ngOnInit() {
-    this.http.get<CatalogueProduit[]>('/api/catalogue').subscribe(res => this.produits.set(res));
+    this.http.get<CatalogueProduit[]>('/api/catalogue-produits').subscribe(res => this.produits.set(res));
   }
 
   onCategoryChange(e: Event) {

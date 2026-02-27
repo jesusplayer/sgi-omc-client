@@ -73,6 +73,7 @@ export class LitListComponent implements OnInit {
   ];
 
   rowActions: GridRowAction[] = [
+    { icon: '👁️', label: 'Détail', title: 'Détail', routeFn: (l) => ['/admin/lits', l.lit_id], class: 'btn-info' },
     { icon: '✏️', label: 'Éditer', title: 'Éditer', routeFn: (l) => ['/admin/lits', l.lit_id, 'editer'], class: 'btn-outline' }
   ];
 

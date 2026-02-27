@@ -1,93 +1,25 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, input } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, input, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { CatalogueProduit } from '../../core/models';
+import { GenericFormComponent } from '../../shared/components/generic-form/generic-form.component';
+import { FormSection } from '../../shared/models/form.models';
 
 @Component({
   selector: 'app-catalogue-form',
   standalone: true,
-  imports: [FormsModule],
+  imports: [GenericFormComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="page-header">
-      <div>
-        <h1>{{ isEdit() ? '✏️ Modifier' : '➕ Nouveau' }} produit</h1>
-        <p>Gérer les propriétés d'un produit du catalogue</p>
-      </div>
-    </div>
-
-    <div class="card" style="max-width:800px">
-      <form (ngSubmit)="onSubmit()">
-        <div class="grid grid-2" style="gap:1rem;margin-bottom:1.5rem">
-          <div class="form-group">
-            <label class="form-label">Code Produit *</label>
-            <input class="form-control" [(ngModel)]="form.code_produit" name="code_produit" required placeholder="Ex: MED-PAR-500" [disabled]="isEdit()" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Catégorie *</label>
-            <select class="form-control" [(ngModel)]="form.categorie" name="categorie" required>
-              <option value="MEDICAMENT">Médicament</option>
-              <option value="EPI">Equipement Protection Indiv.</option>
-              <option value="MATERIEL">Matériel Médical</option>
-              <option value="CONSOMMABLE">Consommable</option>
-              <option value="AUTRE">Autre</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group" style="margin-bottom:1.5rem">
-          <label class="form-label">Désignation complète *</label>
-          <input class="form-control" [(ngModel)]="form.designation" name="designation" required placeholder="Ex: Paracétamol 500mg, Boîte de 10" />
-        </div>
-
-        @if (form.categorie === 'MEDICAMENT') {
-          <div class="grid grid-2" style="gap:1rem;margin-bottom:1.5rem;padding:1rem;background:var(--bg-secondary);border-radius:6px">
-            <div class="form-group">
-              <label class="form-label">DCI</label>
-              <input class="form-control" [(ngModel)]="form.dci" name="dci" placeholder="Principe actif" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Code ATC</label>
-              <input class="form-control" [(ngModel)]="form.code_atc" name="code_atc" placeholder="Ex: N02BE01" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Forme</label>
-              <input class="form-control" [(ngModel)]="form.forme" name="forme" placeholder="Ex: Comprimé" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Dosage</label>
-              <input class="form-control" [(ngModel)]="form.dosage" name="dosage" placeholder="Ex: 500 mg" />
-            </div>
-          </div>
-        }
-
-        <div class="grid grid-2" style="gap:1rem;margin-bottom:1.5rem">
-          <div class="form-group">
-            <label class="form-label">Unité de base *</label>
-            <input class="form-control" [(ngModel)]="form.unite_base" name="unite_base" required placeholder="Ex: Boîte, Unité, Flacon" />
-          </div>
-          <div class="form-group flex gap-2" style="align-items:flex-end">
-            <label class="flex" style="align-items:center;gap:0.5rem;cursor:pointer;padding-bottom:10px">
-              <input type="checkbox" [(ngModel)]="form.necessite_froid" name="necessite_froid" style="width:1.2rem;height:1.2rem;accent-color:var(--primary)" />
-              <span class="font-medium">Chaîne du froid (2-8°C)</span>
-            </label>
-            
-            <label class="flex" style="align-items:center;gap:0.5rem;cursor:pointer;padding-bottom:10px;margin-left:1rem">
-              <input type="checkbox" [(ngModel)]="form.actif" name="actif" style="width:1.2rem;height:1.2rem;accent-color:var(--primary)" />
-              <span class="font-medium">Actif</span>
-            </label>
-          </div>
-        </div>
-
-        <div class="flex gap-2" style="margin-top:2rem">
-          <button type="submit" class="btn btn-primary" [disabled]="!form.code_produit || !form.designation || !form.categorie || !form.unite_base">
-            {{ isEdit() ? '💾 Enregistrer' : '✅ Créer' }}
-          </button>
-          <button type="button" class="btn btn-outline" (click)="onCancel()">Annuler</button>
-        </div>
-      </form>
-    </div>
+    <app-generic-form
+      [title]="isEdit() ? '✏️ Modifier produit' : '➕ Nouveau produit'"
+      subtitle="Gérer les propriétés d'un produit du catalogue"
+      maxWidth="800px"
+      [schema]="currentSchema()"
+      [(formData)]="form"
+      (save)="onSubmit()"
+      (cancel)="onCancel()"
+    ></app-generic-form>
   `,
 })
 export class CatalogueFormComponent implements OnInit {
@@ -99,37 +31,107 @@ export class CatalogueFormComponent implements OnInit {
   isEdit = signal(false);
   produitId = '';
 
+  baseSchema: FormSection[] = [
+    {
+      gridColumns: 2,
+      fields: [
+        { key: 'code_produit', label: 'Code Produit', type: 'text', required: true, placeholder: 'Ex: MED-PAR-500' },
+        {
+          key: 'categorie', label: 'Catégorie', type: 'select', required: true,
+          options: [
+            { value: 'MEDICAMENT', label: 'Médicament' },
+            { value: 'EPI', label: 'Equipement Protection Indiv.' },
+            { value: 'MATERIEL', label: 'Matériel Médical' },
+            { value: 'CONSOMMABLE', label: 'Consommable' },
+            { value: 'AUTRE', label: 'Autre' }
+          ]
+        }
+      ]
+    },
+    {
+      fields: [
+        { key: 'designation', label: 'Désignation complète', type: 'text', required: true, placeholder: 'Ex: Paracétamol 500mg, Boîte de 10' }
+      ]
+    },
+    {
+      gridColumns: 2,
+      fields: [
+        { key: 'unite_base', label: 'Unité de base', type: 'text', required: true, placeholder: 'Ex: Boîte, Unité, Flacon' },
+        { key: 'necessite_froid', label: 'Chaîne du froid (2-8°C)', type: 'checkbox' },
+        { key: 'actif', label: 'Actif', type: 'checkbox' }
+      ]
+    }
+  ];
+
   form: Partial<CatalogueProduit> = {
     code_produit: '',
     designation: '',
     categorie: 'MEDICAMENT',
     unite_base: '',
     necessite_froid: false,
-    actif: true
+    actif: true,
+    dci: '', code_atc: '', forme: '', dosage: ''
   };
 
+  // Create a computed schema to inject the medicine specific fields dynamically based on state
+  // We track local copy of category to force re-evaluation of schema if needed
+  localCategory = signal('MEDICAMENT');
+
+  currentSchema = computed(() => {
+    const schema = structuredClone(this.baseSchema);
+
+    // Disable code_produit on edit
+    if (this.isEdit()) {
+      schema[0].fields[0].disabled = true;
+    }
+
+    if (this.localCategory() === 'MEDICAMENT') {
+      schema.splice(2, 0, {
+        title: 'Détails Médicament',
+        gridColumns: 2,
+        fields: [
+          { key: 'dci', label: 'DCI', type: 'text', placeholder: 'Principe actif' },
+          { key: 'code_atc', label: 'Code ATC', type: 'text', placeholder: 'Ex: N02BE01' },
+          { key: 'forme', label: 'Forme', type: 'text', placeholder: 'Ex: Comprimé' },
+          { key: 'dosage', label: 'Dosage', type: 'text', placeholder: 'Ex: 500 mg' }
+        ]
+      });
+    }
+
+    return schema;
+  });
+
   ngOnInit() {
-    const id = this.item() ? (this.item()?.id || this.item()?.config_id || this.item()?.patient_id || this.item()?.orientation_id) : null;
+    const id = this.item() ? (this.item()?.id || this.item()?.produit_id || this.item()?.article_id) : null;
     if (id) {
       this.isEdit.set(true);
       this.produitId = id;
       const p = this.item();
       if (p) {
         this.form = { ...p };
+        this.localCategory.set(p.categorie || 'MEDICAMENT');
         this.cdr.markForCheck();
       }
     }
+
+    // Watch for changes on categorie to update schema. Workaround due to how two-way binding writes mutably.
+    // In a real reactive form, we could subscribe to value changes.
+    setInterval(() => {
+      if (this.form.categorie !== this.localCategory()) {
+        this.localCategory.set(this.form.categorie!);
+      }
+    }, 100);
   }
 
   onSubmit() {
     if (!this.form.code_produit || !this.form.designation || !this.form.categorie || !this.form.unite_base) return;
 
     if (this.isEdit()) {
-      this.http.put(`/api/catalogue/${this.produitId}`, this.form).subscribe(() => {
+      this.http.put(`/api/catalogue-produits/${this.produitId}`, this.form).subscribe(() => {
         this.router.navigate(['/admin/catalogue']);
       });
     } else {
-      this.http.post('/api/catalogue', this.form).subscribe(() => {
+      this.http.post('/api/catalogue-produits', this.form).subscribe(() => {
         this.router.navigate(['/admin/catalogue']);
       });
     }

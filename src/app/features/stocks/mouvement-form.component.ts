@@ -1,110 +1,114 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { ConsommationStock, Stock } from '../../core/models';
+import { GenericFormComponent } from '../../shared/components/generic-form/generic-form.component';
+import { FormSection } from '../../shared/models/form.models';
 
 @Component({
-    selector: 'app-mouvement-form',
-    standalone: true,
-    imports: [FormsModule],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
-    <div class="page-header">
-      <div>
-        <h1>➕ Saisir un MOUVEMENT</h1>
-        <p>Enregistrer une entrée ou sortie de stock</p>
+  selector: 'app-mouvement-form',
+  standalone: true,
+  imports: [GenericFormComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <app-generic-form
+      title="➕ Saisir un MOUVEMENT"
+      subtitle="Enregistrer une entrée ou sortie de stock"
+      maxWidth="600px"
+      [schema]="currentSchema()"
+      [(formData)]="form"
+      (save)="onSubmit()"
+      (cancel)="onCancel()"
+      saveLabel="✅ Valider Mouvement"
+      [saving]="saving()"
+      [disableSave]="!form.stock_id || !form.quantite || form.quantite < 1"
+    >
+      <div form-footer class="alert alert-warning" style="margin-bottom:1.5rem">
+        <p class="text-sm font-medium">Attention: Ce mouvement est définitif et modifiera le stock disponible de manière irréversible.</p>
       </div>
-    </div>
-
-    <div class="card" style="max-width:600px">
-      <form (ngSubmit)="onSubmit()">
-        <div class="form-group" style="margin-bottom:1.5rem">
-          <label class="form-label">Stock concerné *</label>
-          <select class="form-control" [(ngModel)]="form.stock_id" name="stock_id" required>
-            <option value="" disabled>Sélectionner un stock</option>
-            @for (s of stocks(); track s.stock_id) {
-              <option [value]="s.stock_id">{{ s.stock_id }} - Reste: {{ s.quantite_disponible }} {{ s.unite }}</option>
-            }
-          </select>
-        </div>
-
-        <div class="grid grid-2" style="gap:1rem;margin-bottom:1.5rem">
-          <div class="form-group">
-            <label class="form-label">Type Mouvement *</label>
-            <select class="form-control" [(ngModel)]="form.type_mouvement" name="type_mouvement" required>
-              <option value="CONSOMMATION">Consommation</option>
-              <option value="REAPPRO">Réapprovisionnement</option>
-              <option value="TRANSFERT">Transfert</option>
-              <option value="PERTE">Perte / Casse</option>
-              <option value="PEREMPTION">Péremption</option>
-              <option value="INVENTAIRE">Inventaire</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Sens *</label>
-            <select class="form-control" [(ngModel)]="form.sens" name="sens" required>
-              <option value="ENTREE">Entrée (+)</option>
-              <option value="SORTIE">Sortie (-)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group" style="margin-bottom:1.5rem">
-          <label class="form-label">Quantité *</label>
-          <input type="number" class="form-control" [(ngModel)]="form.quantite" name="quantite" required min="1" placeholder="Valeur strictement positive" />
-        </div>
-
-        <div class="form-group" style="margin-bottom:1.5rem">
-          <label class="form-label">Commentaire justificatif</label>
-          <textarea class="form-control" [(ngModel)]="form.commentaire" name="commentaire" rows="3" placeholder="Raison de la perte, Réf de livraison..."></textarea>
-        </div>
-
-        <div class="alert alert-warning" style="margin-bottom:1.5rem">
-          <p class="text-sm font-medium">Attention: Ce mouvement est définitif et modifiera le stock disponible de manière irréversible.</p>
-        </div>
-
-        <div class="flex gap-2">
-          <button type="submit" class="btn btn-primary" [disabled]="!form.stock_id || !form.quantite || form.quantite < 1">
-            ✅ Valider Mouvement
-          </button>
-          <button type="button" class="btn btn-outline" (click)="onCancel()">Annuler</button>
-        </div>
-      </form>
-    </div>
+    </app-generic-form>
   `,
 })
 export class MouvementFormComponent implements OnInit {
-    private http = inject(HttpClient);
-    private router = inject(Router);
+  private http = inject(HttpClient);
+  private router = inject(Router);
 
-    stocks = signal<Stock[]>([]);
+  stocks = signal<Stock[]>([]);
+  saving = signal(false);
 
-    form: Partial<ConsommationStock> = {
-        stock_id: '',
-        type_mouvement: 'CONSOMMATION',
-        sens: 'SORTIE',
-        quantite: 1,
-        commentaire: ''
-    };
+  form: Partial<ConsommationStock> = {
+    stock_id: '',
+    type_mouvement: 'CONSOMMATION',
+    sens: 'SORTIE',
+    quantite: 1,
+    commentaire: ''
+  };
 
-    ngOnInit() {
-        this.http.get<Stock[]>('/api/stocks').subscribe(s => this.stocks.set(s));
-    }
+  currentSchema = computed(() => {
+    return [
+      {
+        fields: [
+          {
+            key: 'stock_id', label: 'Stock concerné', type: 'select', required: true,
+            options: this.stocks().map(s => ({
+              value: s.stock_id,
+              label: `${s.stock_id} - Reste: ${s.quantite_disponible} ${s.unite}`
+            }))
+          }
+        ]
+      },
+      {
+        gridColumns: 2,
+        fields: [
+          {
+            key: 'type_mouvement', label: 'Type Mouvement', type: 'select', required: true,
+            options: [
+              { value: 'CONSOMMATION', label: 'Consommation' },
+              { value: 'REAPPRO', label: 'Réapprovisionnement' },
+              { value: 'TRANSFERT', label: 'Transfert' },
+              { value: 'PERTE', label: 'Perte / Casse' },
+              { value: 'PEREMPTION', label: 'Péremption' },
+              { value: 'INVENTAIRE', label: 'Inventaire' }
+            ]
+          },
+          {
+            key: 'sens', label: 'Sens', type: 'select', required: true,
+            options: [
+              { value: 'ENTREE', label: 'Entrée (+)' },
+              { value: 'SORTIE', label: 'Sortie (-)' }
+            ]
+          }
+        ]
+      },
+      {
+        fields: [
+          { key: 'quantite', label: 'Quantité', type: 'number', required: true, min: 1, placeholder: 'Valeur strictement positive' },
+          { key: 'commentaire', label: 'Commentaire justificatif', type: 'textarea', placeholder: 'Raison de la perte, Réf de livraison...' }
+        ]
+      }
+    ] as FormSection[];
+  });
 
-    onSubmit() {
-        if (!this.form.stock_id || !this.form.quantite || this.form.quantite < 1) return;
+  ngOnInit() {
+    this.http.get<Stock[]>('/api/stocks').subscribe(s => this.stocks.set(s));
+  }
 
-        // Defaulting fields not typed
-        this.form.datetime_mouvement = new Date().toISOString();
-        this.form.agent_id = 'user-uuid-123'; // Mock user
+  onSubmit() {
+    if (!this.form.stock_id || !this.form.quantite || this.form.quantite < 1) return;
 
-        this.http.post('/api/mouvements', this.form).subscribe(() => {
-            this.router.navigate(['/stocks/mouvements']);
-        });
-    }
+    this.saving.set(true);
 
-    onCancel() {
-        this.router.navigate(['/stocks/mouvements']);
-    }
+    // Defaulting fields not typed
+    this.form.datetime_mouvement = new Date().toISOString();
+    this.form.agent_id = 'user-uuid-123'; // Mock user
+
+    this.http.post('/api/mouvements', this.form).subscribe({
+      next: () => this.router.navigate(['/stocks/mouvements']),
+      error: () => this.saving.set(false)
+    });
+  }
+
+  onCancel() {
+    this.router.navigate(['/stocks/mouvements']);
+  }
 }

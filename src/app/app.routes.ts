@@ -165,36 +165,41 @@ export const routes: Routes = [
                     {
                         path: 'orientations',
                         data: { breadcrumb: 'Orientations' },
-                        loadComponent: () =>
-                            import('./features/regulation/orientation-list.component').then(
-                                (m) => m.OrientationListComponent
-                            ),
-                    },
-                    {
-                        path: 'orientations/nouvelle',
-                        data: { breadcrumb: 'Nouvelle orientation' },
-                        loadComponent: () =>
-                            import('./features/regulation/orientation-form.component').then(
-                                (m) => m.OrientationFormComponent
-                            ),
-                    },
-                    {
-                        path: 'orientations/:id/editer',
-                        data: { breadcrumb: 'Modifier orientation' },
-                        resolve: { item: genericResolver('/api/orientations') },
-                        loadComponent: () =>
-                            import('./features/regulation/orientation-form.component').then(
-                                (m) => m.OrientationFormComponent
-                            ),
-                    },
-                    {
-                        path: 'orientations/:id',
-                        data: { breadcrumb: 'Détail orientation' },
-                        resolve: { item: genericResolver('/api/orientations') },
-                        loadComponent: () =>
-                            import('./features/regulation/orientation-detail.component').then(
-                                (m) => m.OrientationDetailComponent
-                            ),
+                        children: [
+                            {
+                                path: '',
+                                loadComponent: () =>
+                                    import('./features/regulation/orientation-list.component').then(
+                                        (m) => m.OrientationListComponent
+                                    ),
+                            },
+                            {
+                                path: 'nouvelle',
+                                data: { breadcrumb: 'Nouvelle orientation' },
+                                loadComponent: () =>
+                                    import('./features/regulation/orientation-form.component').then(
+                                        (m) => m.OrientationFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id/editer',
+                                data: { breadcrumb: 'Modifier orientation' },
+                                resolve: { item: genericResolver('/api/orientations') },
+                                loadComponent: () =>
+                                    import('./features/regulation/orientation-form.component').then(
+                                        (m) => m.OrientationFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id',
+                                data: { breadcrumb: 'Détail orientation' },
+                                resolve: { item: genericResolver('/api/orientations') },
+                                loadComponent: () =>
+                                    import('./features/regulation/orientation-detail.component').then(
+                                        (m) => m.OrientationDetailComponent
+                                    ),
+                            },
+                        ]
                     },
                 ],
             },
@@ -212,27 +217,41 @@ export const routes: Routes = [
                     {
                         path: 'admissions',
                         data: { breadcrumb: 'Admissions' },
-                        loadComponent: () =>
-                            import('./features/fosa/admission-list.component').then(
-                                (m) => m.AdmissionListComponent
-                            ),
-                    },
-                    {
-                        path: 'admissions/nouvelle',
-                        data: { breadcrumb: 'Nouvelle admission' },
-                        loadComponent: () =>
-                            import('./features/fosa/admission-form.component').then(
-                                (m) => m.AdmissionFormComponent
-                            ),
-                    },
-                    {
-                        path: 'admissions/:id/editer',
-                        data: { breadcrumb: 'Modifier admission' },
-                        resolve: { item: genericResolver('/api/prises-en-charge') },
-                        loadComponent: () =>
-                            import('./features/fosa/admission-form.component').then(
-                                (m) => m.AdmissionFormComponent
-                            ),
+                        children: [
+                            {
+                                path: '',
+                                loadComponent: () =>
+                                    import('./features/fosa/admission-list.component').then(
+                                        (m) => m.AdmissionListComponent
+                                    ),
+                            },
+                            {
+                                path: 'nouvelle',
+                                data: { breadcrumb: 'Nouvelle admission' },
+                                loadComponent: () =>
+                                    import('./features/fosa/admission-form.component').then(
+                                        (m) => m.AdmissionFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id/editer',
+                                data: { breadcrumb: 'Modifier admission' },
+                                resolve: { item: genericResolver('/api/prises-en-charge') },
+                                loadComponent: () =>
+                                    import('./features/fosa/admission-form.component').then(
+                                        (m) => m.AdmissionFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id',
+                                data: { breadcrumb: 'Détail admission' },
+                                resolve: { item: genericResolver('/api/prises-en-charge') },
+                                loadComponent: () =>
+                                    import('./features/fosa/admission-detail.component').then(
+                                        (m) => m.AdmissionDetailComponent
+                                    ),
+                            },
+                        ]
                     },
                     {
                         path: 'lits',
@@ -243,47 +262,43 @@ export const routes: Routes = [
                             ),
                     },
                     {
-                        path: 'admissions/:id',
-                        data: { breadcrumb: 'Détail admission' },
-                        resolve: { item: genericResolver('/api/prises-en-charge') },
-                        loadComponent: () =>
-                            import('./features/fosa/admission-detail.component').then(
-                                (m) => m.AdmissionDetailComponent
-                            ),
-                    },
-                    {
                         path: 'laboratoire',
                         data: { breadcrumb: 'Laboratoire' },
-                        loadComponent: () =>
-                            import('./features/fosa/laboratoire-list.component').then(
-                                (m) => m.LaboratoireListComponent
-                            ),
-                    },
-                    {
-                        path: 'laboratoire/prescription',
-                        data: { breadcrumb: 'Nouvelle prescription' },
-                        loadComponent: () =>
-                            import('./features/fosa/laboratoire-form.component').then(
-                                (m) => m.LaboratoireFormComponent
-                            ),
-                    },
-                    {
-                        path: 'laboratoire/:id/editer',
-                        data: { breadcrumb: 'Saisir résultats' },
-                        resolve: { item: genericResolver('/api/resultats-labo') },
-                        loadComponent: () =>
-                            import('./features/fosa/laboratoire-form.component').then(
-                                (m) => m.LaboratoireFormComponent
-                            ),
-                    },
-                    {
-                        path: 'laboratoire/:id',
-                        data: { breadcrumb: 'Détail Demande' },
-                        resolve: { item: genericResolver('/api/resultats-labo') },
-                        loadComponent: () =>
-                            import('./features/fosa/laboratoire-detail.component').then(
-                                (m) => m.LaboratoireDetailComponent
-                            ),
+                        children: [
+                            {
+                                path: '',
+                                loadComponent: () =>
+                                    import('./features/fosa/laboratoire-list.component').then(
+                                        (m) => m.LaboratoireListComponent
+                                    ),
+                            },
+                            {
+                                path: 'prescription',
+                                data: { breadcrumb: 'Nouvelle prescription' },
+                                loadComponent: () =>
+                                    import('./features/fosa/laboratoire-form.component').then(
+                                        (m) => m.LaboratoireFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id/editer',
+                                data: { breadcrumb: 'Saisir résultats' },
+                                resolve: { item: genericResolver('/api/resultats-labo') },
+                                loadComponent: () =>
+                                    import('./features/fosa/laboratoire-form.component').then(
+                                        (m) => m.LaboratoireFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id',
+                                data: { breadcrumb: 'Détail Demande' },
+                                resolve: { item: genericResolver('/api/resultats-labo') },
+                                loadComponent: () =>
+                                    import('./features/fosa/laboratoire-detail.component').then(
+                                        (m) => m.LaboratoireDetailComponent
+                                    ),
+                            },
+                        ]
                     },
                 ],
             },
@@ -337,18 +352,23 @@ export const routes: Routes = [
                     {
                         path: 'mouvements',
                         data: { breadcrumb: 'Mouvements' },
-                        loadComponent: () =>
-                            import('./features/stocks/mouvement-list.component').then(
-                                (m) => m.MouvementListComponent
-                            ),
-                    },
-                    {
-                        path: 'mouvements/nouveau',
-                        data: { breadcrumb: 'Nouveau Mouvement' },
-                        loadComponent: () =>
-                            import('./features/stocks/mouvement-form.component').then(
-                                (m) => m.MouvementFormComponent
-                            ),
+                        children: [
+                            {
+                                path: '',
+                                loadComponent: () =>
+                                    import('./features/stocks/mouvement-list.component').then(
+                                        (m) => m.MouvementListComponent
+                                    ),
+                            },
+                            {
+                                path: 'nouveau',
+                                data: { breadcrumb: 'Nouveau Mouvement' },
+                                loadComponent: () =>
+                                    import('./features/stocks/mouvement-form.component').then(
+                                        (m) => m.MouvementFormComponent
+                                    ),
+                            },
+                        ]
                     },
                     {
                         path: ':id',
@@ -397,204 +417,296 @@ export const routes: Routes = [
                     {
                         path: 'utilisateurs',
                         data: { breadcrumb: 'Utilisateurs' },
-                        loadComponent: () =>
-                            import('./features/admin/utilisateur-list.component').then(
-                                (m) => m.UtilisateurListComponent
-                            ),
+                        children: [
+                            {
+                                path: '',
+                                loadComponent: () =>
+                                    import('./features/admin/utilisateur-list.component').then(
+                                        (m) => m.UtilisateurListComponent
+                                    ),
+                            },
+                            {
+                                path: 'nouveau',
+                                data: { breadcrumb: 'Nouvel Utilisateur' },
+                                loadComponent: () =>
+                                    import('./features/admin/utilisateur-form.component').then(
+                                        (m) => m.UtilisateurFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id/editer',
+                                data: { breadcrumb: 'Modifier Utilisateur' },
+                                resolve: { item: genericResolver('/api/utilisateurs') },
+                                loadComponent: () =>
+                                    import('./features/admin/utilisateur-form.component').then(
+                                        (m) => m.UtilisateurFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id',
+                                data: { breadcrumb: 'Détail Utilisateur' },
+                                resolve: { item: genericResolver('/api/utilisateurs') },
+                                loadComponent: () =>
+                                    import('./features/admin/utilisateur-detail.component').then(
+                                        (m) => m.UtilisateurDetailComponent
+                                    ),
+                            },
+                        ]
                     },
                     {
                         path: 'vaccinations',
                         data: { breadcrumb: 'Vaccinations' },
-                        loadComponent: () =>
-                            import('./features/admin/vaccination-list.component').then(
-                                (m) => m.VaccinationListComponent
-                            ),
-                    },
-                    {
-                        path: 'vaccinations/nouveau',
-                        data: { breadcrumb: 'Nouvelle vaccination' },
-                        loadComponent: () =>
-                            import('./features/admin/vaccination-form.component').then(
-                                (m) => m.VaccinationFormComponent
-                            ),
-                    },
-                    {
-                        path: 'vaccinations/:id/editer',
-                        data: { breadcrumb: 'Modifier vaccination' },
-                        resolve: { item: genericResolver('/api/vaccinations') },
-                        loadComponent: () =>
-                            import('./features/admin/vaccination-form.component').then(
-                                (m) => m.VaccinationFormComponent
-                            ),
-                    },
-                    {
-                        path: 'vaccinations/:id',
-                        data: { breadcrumb: 'Détail vaccination' },
-                        resolve: { item: genericResolver('/api/vaccinations') },
-                        loadComponent: () =>
-                            import('./features/admin/vaccination-detail.component').then(
-                                (m) => m.VaccinationDetailComponent
-                            ),
+                        children: [
+                            {
+                                path: '',
+                                loadComponent: () =>
+                                    import('./features/admin/vaccination-list.component').then(
+                                        (m) => m.VaccinationListComponent
+                                    ),
+                            },
+                            {
+                                path: 'nouveau',
+                                data: { breadcrumb: 'Nouvelle vaccination' },
+                                loadComponent: () =>
+                                    import('./features/admin/vaccination-form.component').then(
+                                        (m) => m.VaccinationFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id/editer',
+                                data: { breadcrumb: 'Modifier vaccination' },
+                                resolve: { item: genericResolver('/api/vaccinations') },
+                                loadComponent: () =>
+                                    import('./features/admin/vaccination-form.component').then(
+                                        (m) => m.VaccinationFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id',
+                                data: { breadcrumb: 'Détail vaccination' },
+                                resolve: { item: genericResolver('/api/vaccinations') },
+                                loadComponent: () =>
+                                    import('./features/admin/vaccination-detail.component').then(
+                                        (m) => m.VaccinationDetailComponent
+                                    ),
+                            },
+                        ]
                     },
                     {
                         path: 'sites',
                         data: { breadcrumb: 'Sites' },
-                        loadComponent: () =>
-                            import('./features/admin/site-list.component').then(
-                                (m) => m.SiteListComponent
-                            ),
-                    },
-                    {
-                        path: 'sites/nouveau',
-                        data: { breadcrumb: 'Nouveau site' },
-                        loadComponent: () =>
-                            import('./features/admin/site-form.component').then(
-                                (m) => m.SiteFormComponent
-                            ),
-                    },
-                    {
-                        path: 'sites/:id/editer',
-                        data: { breadcrumb: 'Modifier site' },
-                        resolve: { item: genericResolver('/api/sites') },
-                        loadComponent: () =>
-                            import('./features/admin/site-form.component').then(
-                                (m) => m.SiteFormComponent
-                            ),
-                    },
-                    {
-                        path: 'sites/:id',
-                        data: { breadcrumb: 'Détail site' },
-                        resolve: { item: genericResolver('/api/sites') },
-                        loadComponent: () =>
-                            import('./features/admin/site-detail.component').then(
-                                (m) => m.SiteDetailComponent
-                            ),
+                        children: [
+                            {
+                                path: '',
+                                loadComponent: () =>
+                                    import('./features/admin/site-list.component').then(
+                                        (m) => m.SiteListComponent
+                                    ),
+                            },
+                            {
+                                path: 'nouveau',
+                                data: { breadcrumb: 'Nouveau site' },
+                                loadComponent: () =>
+                                    import('./features/admin/site-form.component').then(
+                                        (m) => m.SiteFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id/editer',
+                                data: { breadcrumb: 'Modifier site' },
+                                resolve: { item: genericResolver('/api/sites') },
+                                loadComponent: () =>
+                                    import('./features/admin/site-form.component').then(
+                                        (m) => m.SiteFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id',
+                                data: { breadcrumb: 'Détail site' },
+                                resolve: { item: genericResolver('/api/sites') },
+                                loadComponent: () =>
+                                    import('./features/admin/site-detail.component').then(
+                                        (m) => m.SiteDetailComponent
+                                    ),
+                            },
+                        ]
                     },
                     {
                         path: 'categories-lits',
                         data: { breadcrumb: 'Catégories de Lits' },
-                        loadComponent: () =>
-                            import('./features/admin/categorie-lit-list.component').then(
-                                (m) => m.CategorieLitListComponent
-                            ),
-                    },
-                    {
-                        path: 'categories-lits/nouvelle',
-                        data: { breadcrumb: 'Nouvelle Catégorie' },
-                        loadComponent: () =>
-                            import('./features/admin/categorie-lit-form.component').then(
-                                (m) => m.CategorieLitFormComponent
-                            ),
-                    },
-                    {
-                        path: 'categories-lits/:id/editer',
-                        data: { breadcrumb: 'Modifier Catégorie' },
-                        resolve: { item: genericResolver('/api/categories-lit') },
-                        loadComponent: () =>
-                            import('./features/admin/categorie-lit-form.component').then(
-                                (m) => m.CategorieLitFormComponent
-                            ),
+                        children: [
+                            {
+                                path: '',
+                                loadComponent: () =>
+                                    import('./features/admin/categorie-lit-list.component').then(
+                                        (m) => m.CategorieLitListComponent
+                                    ),
+                            },
+                            {
+                                path: 'nouvelle',
+                                data: { breadcrumb: 'Nouvelle Catégorie' },
+                                loadComponent: () =>
+                                    import('./features/admin/categorie-lit-form.component').then(
+                                        (m) => m.CategorieLitFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id/editer',
+                                data: { breadcrumb: 'Modifier Catégorie' },
+                                resolve: { item: genericResolver('/api/categories-lits') },
+                                loadComponent: () =>
+                                    import('./features/admin/categorie-lit-form.component').then(
+                                        (m) => m.CategorieLitFormComponent
+                                    ),
+                            },
+                        ]
                     },
                     {
                         path: 'lits',
                         data: { breadcrumb: 'Lits' },
-                        loadComponent: () =>
-                            import('./features/admin/lit-list.component').then(
-                                (m) => m.LitListComponent
-                            ),
-                    },
-                    {
-                        path: 'lits/nouveau',
-                        data: { breadcrumb: 'Nouveau Lit' },
-                        loadComponent: () =>
-                            import('./features/admin/lit-form.component').then(
-                                (m) => m.LitFormComponent
-                            ),
-                    },
-                    {
-                        path: 'lits/:id/editer',
-                        data: { breadcrumb: 'Modifier Lit' },
-                        resolve: { item: genericResolver('/api/lits') },
-                        loadComponent: () =>
-                            import('./features/admin/lit-form.component').then(
-                                (m) => m.LitFormComponent
-                            ),
+                        children: [
+                            {
+                                path: '',
+                                loadComponent: () =>
+                                    import('./features/admin/lit-list.component').then(
+                                        (m) => m.LitListComponent
+                                    ),
+                            },
+                            {
+                                path: 'nouveau',
+                                data: { breadcrumb: 'Nouveau Lit' },
+                                loadComponent: () =>
+                                    import('./features/admin/lit-form.component').then(
+                                        (m) => m.LitFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id/editer',
+                                data: { breadcrumb: 'Modifier Lit' },
+                                resolve: { item: genericResolver('/api/lits') },
+                                loadComponent: () =>
+                                    import('./features/admin/lit-form.component').then(
+                                        (m) => m.LitFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id',
+                                data: { breadcrumb: 'Détail Lit' },
+                                resolve: { item: genericResolver('/api/lits') },
+                                loadComponent: () =>
+                                    import('./features/admin/lit-detail.component').then(
+                                        (m) => m.LitDetailComponent
+                                    ),
+                            },
+                        ]
                     },
                     {
                         path: 'catalogue',
                         data: { breadcrumb: 'Catalogue Produits' },
-                        loadComponent: () =>
-                            import('./features/admin/catalogue-list.component').then(
-                                (m) => m.CatalogueListComponent
-                            ),
-                    },
-                    {
-                        path: 'catalogue/nouveau',
-                        data: { breadcrumb: 'Nouveau Produit' },
-                        loadComponent: () =>
-                            import('./features/admin/catalogue-form.component').then(
-                                (m) => m.CatalogueFormComponent
-                            ),
-                    },
-                    {
-                        path: 'catalogue/:id/editer',
-                        data: { breadcrumb: 'Modifier Produit' },
-                        resolve: { item: genericResolver('/api/catalogue-produits') },
-                        loadComponent: () =>
-                            import('./features/admin/catalogue-form.component').then(
-                                (m) => m.CatalogueFormComponent
-                            ),
+                        children: [
+                            {
+                                path: '',
+                                loadComponent: () =>
+                                    import('./features/admin/catalogue-list.component').then(
+                                        (m) => m.CatalogueListComponent
+                                    ),
+                            },
+                            {
+                                path: 'nouveau',
+                                data: { breadcrumb: 'Nouveau Produit' },
+                                loadComponent: () =>
+                                    import('./features/admin/catalogue-form.component').then(
+                                        (m) => m.CatalogueFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id/editer',
+                                data: { breadcrumb: 'Modifier Produit' },
+                                resolve: { item: genericResolver('/api/catalogue-produits') },
+                                loadComponent: () =>
+                                    import('./features/admin/catalogue-form.component').then(
+                                        (m) => m.CatalogueFormComponent
+                                    ),
+                            },
+                        ]
                     },
                     {
                         path: 'alertes-config',
-                        data: { breadcrumb: 'Règles d\'alerte' },
-                        loadComponent: () =>
-                            import('./features/admin/alerte-config-list.component').then(
-                                (m) => m.AlerteConfigListComponent
-                            ),
-                    },
-                    {
-                        path: 'alertes-config/nouvelle',
-                        data: { breadcrumb: 'Nouvelle Règle' },
-                        loadComponent: () =>
-                            import('./features/admin/alerte-config-form.component').then(
-                                (m) => m.AlerteConfigFormComponent
-                            ),
-                    },
-                    {
-                        path: 'alertes-config/:id/editer',
-                        data: { breadcrumb: 'Modifier Règle' },
-                        resolve: { item: genericResolver('/api/configurations-alerte') },
-                        loadComponent: () =>
-                            import('./features/admin/alerte-config-form.component').then(
-                                (m) => m.AlerteConfigFormComponent
-                            ),
-                    },
-                    {
-                        path: 'alertes-config/:id',
-                        data: { breadcrumb: 'Détail Règle' },
-                        resolve: { item: genericResolver('/api/configurations-alerte') },
-                        loadComponent: () =>
-                            import('./features/admin/alerte-config-detail.component').then(
-                                (m) => m.AlerteConfigDetailComponent
-                            ),
+                        data: { breadcrumb: "Règles d'alerte" },
+                        children: [
+                            {
+                                path: '',
+                                loadComponent: () =>
+                                    import('./features/admin/alerte-config-list.component').then(
+                                        (m) => m.AlerteConfigListComponent
+                                    ),
+                            },
+                            {
+                                path: 'nouvelle',
+                                data: { breadcrumb: 'Nouvelle Règle' },
+                                loadComponent: () =>
+                                    import('./features/admin/alerte-config-form.component').then(
+                                        (m) => m.AlerteConfigFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id/editer',
+                                data: { breadcrumb: 'Modifier Règle' },
+                                resolve: { item: genericResolver('/api/configurations-alerte') },
+                                loadComponent: () =>
+                                    import('./features/admin/alerte-config-form.component').then(
+                                        (m) => m.AlerteConfigFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id',
+                                data: { breadcrumb: 'Détail Règle' },
+                                resolve: { item: genericResolver('/api/configurations-alerte') },
+                                loadComponent: () =>
+                                    import('./features/admin/alerte-config-detail.component').then(
+                                        (m) => m.AlerteConfigDetailComponent
+                                    ),
+                            },
+                        ]
                     },
                     {
                         path: 'roles',
                         data: { breadcrumb: 'Rôles' },
-                        loadComponent: () =>
-                            import('./features/admin/role-list.component').then(
-                                (m) => m.RoleListComponent
-                            ),
-                    },
-                    {
-                        path: 'roles/:id',
-                        data: { breadcrumb: 'Détail Rôle' },
-                        resolve: { item: genericResolver('/api/roles') },
-                        loadComponent: () =>
-                            import('./features/admin/role-detail.component').then(
-                                (m) => m.RoleDetailComponent
-                            ),
+                        children: [
+                            {
+                                path: '',
+                                loadComponent: () =>
+                                    import('./features/admin/role-list.component').then(
+                                        (m) => m.RoleListComponent
+                                    ),
+                            },
+                            {
+                                path: 'nouveau',
+                                data: { breadcrumb: 'Nouveau Rôle' },
+                                loadComponent: () =>
+                                    import('./features/admin/role-form.component').then(
+                                        (m) => m.RoleFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id/editer',
+                                data: { breadcrumb: 'Modifier Rôle' },
+                                resolve: { item: genericResolver('/api/roles') },
+                                loadComponent: () =>
+                                    import('./features/admin/role-form.component').then(
+                                        (m) => m.RoleFormComponent
+                                    ),
+                            },
+                            {
+                                path: ':id',
+                                data: { breadcrumb: 'Détail Rôle' },
+                                resolve: { item: genericResolver('/api/roles') },
+                                loadComponent: () =>
+                                    import('./features/admin/role-detail.component').then(
+                                        (m) => m.RoleDetailComponent
+                                    ),
+                            },
+                        ]
                     },
                     {
                         path: 'audit',

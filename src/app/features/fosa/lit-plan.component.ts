@@ -3,10 +3,10 @@ import { HttpClient } from '@angular/common/http';
 import { Lit, CategorieLit, Site } from '../../core/models';
 
 @Component({
-    selector: 'app-lit-plan',
-    standalone: true,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-lit-plan',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     <div class="page-header">
       <div>
         <h1>🛏️ Plan d'occupation des lits</h1>
@@ -72,7 +72,7 @@ import { Lit, CategorieLit, Site } from '../../core/models';
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     .cat-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 0.5rem; }
     .lit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 0.5rem; }
     .lit-cell {
@@ -92,45 +92,45 @@ import { Lit, CategorieLit, Site } from '../../core/models';
   `],
 })
 export class LitPlanComponent implements OnInit {
-    private http = inject(HttpClient);
-    lits = signal<Lit[]>([]);
-    categories = signal<CategorieLit[]>([]);
-    fosaSites = signal<Site[]>([]);
-    selectedSite = signal('site-fosa-chu');
+  private http = inject(HttpClient);
+  lits = signal<Lit[]>([]);
+  categories = signal<CategorieLit[]>([]);
+  fosaSites = signal<Site[]>([]);
+  selectedSite = signal('site-fosa-chu');
 
-    totalBeds = signal(0);
-    freeBeds = signal(0);
-    occupiedBeds = signal(0);
-    tauxOcc = signal('0');
+  totalBeds = signal(0);
+  freeBeds = signal(0);
+  occupiedBeds = signal(0);
+  tauxOcc = signal('0');
 
-    ngOnInit() {
-        this.http.get<CategorieLit[]>('/api/categories-lit').subscribe((c) => this.categories.set(c));
-        this.http.get<Site[]>('/api/sites').subscribe((s) => {
-            this.fosaSites.set(s.filter((x) => x.type_site === 'FOSA'));
-            this.loadLits();
-        });
-    }
+  ngOnInit() {
+    this.http.get<CategorieLit[]>('/api/categories-lits').subscribe((c) => this.categories.set(c));
+    this.http.get<Site[]>('/api/sites').subscribe((s) => {
+      this.fosaSites.set(s.filter((x) => x.type_site === 'FOSA'));
+      this.loadLits();
+    });
+  }
 
-    loadLits() {
-        this.http.get<Lit[]>('/api/lits').subscribe((all) => {
-            const site = this.selectedSite();
-            const forSite = all.filter((l) => l.site_id === site);
-            this.lits.set(forSite);
-            const active = forSite.filter((l) => l.statut !== 'HORS_SERVICE');
-            const occ = forSite.filter((l) => l.statut === 'OCCUPE');
-            this.totalBeds.set(active.length);
-            this.freeBeds.set(forSite.filter((l) => l.statut === 'LIBRE').length);
-            this.occupiedBeds.set(occ.length);
-            this.tauxOcc.set(active.length > 0 ? ((occ.length / active.length) * 100).toFixed(1) : '0');
-        });
-    }
+  loadLits() {
+    this.http.get<Lit[]>('/api/lits').subscribe((all) => {
+      const site = this.selectedSite();
+      const forSite = all.filter((l) => l.site_id === site);
+      this.lits.set(forSite);
+      const active = forSite.filter((l) => l.statut !== 'HORS_SERVICE');
+      const occ = forSite.filter((l) => l.statut === 'OCCUPE');
+      this.totalBeds.set(active.length);
+      this.freeBeds.set(forSite.filter((l) => l.statut === 'LIBRE').length);
+      this.occupiedBeds.set(occ.length);
+      this.tauxOcc.set(active.length > 0 ? ((occ.length / active.length) * 100).toFixed(1) : '0');
+    });
+  }
 
-    onSiteChange(e: Event) {
-        this.selectedSite.set((e.target as HTMLSelectElement).value);
-        this.loadLits();
-    }
+  onSiteChange(e: Event) {
+    this.selectedSite.set((e.target as HTMLSelectElement).value);
+    this.loadLits();
+  }
 
-    getLitsByCat(catId: string): Lit[] { return this.lits().filter((l) => l.categorie_id === catId); }
-    getCatCount(catId: string): number { return this.getLitsByCat(catId).length; }
-    getStatusIcon(s: string): string { switch (s) { case 'LIBRE': return '✅'; case 'OCCUPE': return '🔴'; case 'RESERVE': return '🔵'; default: return '⚫'; } }
+  getLitsByCat(catId: string): Lit[] { return this.lits().filter((l) => l.categorie_id === catId); }
+  getCatCount(catId: string): number { return this.getLitsByCat(catId).length; }
+  getStatusIcon(s: string): string { switch (s) { case 'LIBRE': return '✅'; case 'OCCUPE': return '🔴'; case 'RESERVE': return '🔵'; default: return '⚫'; } }
 }

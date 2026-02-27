@@ -12,9 +12,6 @@ import { ConfigurationAlerte } from '../../core/models';
     @if (config()) {
       <div class="page-header">
         <div>
-          <div class="flex items-center gap-2 mb-2">
-            <a routerLink="/admin/alertes-config" class="text-muted" style="text-decoration:none">← Retour aux règles</a>
-          </div>
           <h1>{{ config()?.libelle }}</h1>
           <p class="text-muted">Code: {{ config()?.code_regle }}</p>
         </div>
@@ -133,7 +130,7 @@ export class AlerteConfigDetailComponent implements OnInit {
     }
   }
 
-  
+
 
   private loadStats(id: string) {
     // In a real app, this would be a specific endpoint. Here we just fetch alertes and filter by logic, or mock it.

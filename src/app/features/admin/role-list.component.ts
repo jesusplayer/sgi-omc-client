@@ -2,7 +2,7 @@ import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ViewChild }
 import { HttpClient } from '@angular/common/http';
 import { Role } from '@app/core/models';
 import { GenericGridComponent } from '../../shared/components/generic-grid/generic-grid.component';
-import { GridColumn, GridRowAction } from '../../shared/components/generic-grid/grid.models';
+import { GridColumn, GridRowAction, GridHeaderAction } from '../../shared/components/generic-grid/grid.models';
 
 @Component({
   selector: 'app-role-list',
@@ -17,6 +17,7 @@ import { GridColumn, GridRowAction } from '../../shared/components/generic-grid/
       [data]="roles()"
       [columns]="columns"
       [rowActions]="rowActions"
+      [headerActions]="headerActions"
       emptyMessage="Aucun rôle trouvé"
     ></app-generic-grid>
   `
@@ -40,8 +41,13 @@ export class RoleListComponent implements OnInit {
     }
   ];
 
+  headerActions: GridHeaderAction[] = [
+    { label: '+ Nouveau rôle', route: ['/admin/roles/nouveau'], class: 'btn-primary' }
+  ];
+
   rowActions: GridRowAction[] = [
-    { icon: '👁️', label: 'Détail', title: 'Détail', routeFn: (r) => ['/admin/roles', r.role_id], class: 'btn-outline' }
+    { icon: '👁️', label: 'Détail', title: 'Détail', routeFn: (r) => ['/admin/roles', r.role_id], class: 'btn-info' },
+    { icon: '✏️', label: 'Éditer', title: 'Éditer', routeFn: (r) => ['/admin/roles', r.role_id, 'editer'], class: 'btn-outline' }
   ];
 
   ngOnInit() {

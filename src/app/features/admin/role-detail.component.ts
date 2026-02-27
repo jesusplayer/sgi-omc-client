@@ -1,5 +1,4 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy, computed, input } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Component, inject, ChangeDetectionStrategy, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { UpperCasePipe } from '@angular/common';
 import { Role } from '@app/core/models';
@@ -10,17 +9,14 @@ import { Role } from '@app/core/models';
   imports: [RouterLink, UpperCasePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (role()) {
+    @if (role(); as r) {
       <div class="page-header">
         <div>
-          <div class="flex items-center gap-2 mb-2">
-            <a routerLink="/admin/roles" class="text-muted" style="text-decoration:none">← Retour aux rôles</a>
-          </div>
-          <h1>{{ role()?.libelle }}</h1>
-          <p class="text-muted">Code: {{ role()?.code_role }}</p>
+          <h1>{{ r.libelle }}</h1>
+          <p class="text-muted">Code: {{ r.code_role }}</p>
         </div>
         <div class="page-actions">
-          <!-- Only ADMIN role can be disabled if it's not the last one, but for simplicity we allow disabling EXCEPT ADMIN itself or we follow specs: "Désactiver Rôle ADMIN uniquement". Actually, MLD says no creation/deletion. -->
+          <a [routerLink]="['/admin/roles', r.role_id, 'editer']" class="btn btn-primary">✏️ Modifier</a>
         </div>
       </div>
 
@@ -28,18 +24,18 @@ import { Role } from '@app/core/models';
         <div class="card">
           <div class="card-header">
             <h3>Informations Générales</h3>
-            <span class="badge" [class]="role()?.actif ? 'badge-success' : 'badge-neutral'">
-              {{ role()?.actif ? 'Actif' : 'Inactif' }}
+            <span class="badge" [class]="r.actif ? 'badge-success' : 'badge-neutral'">
+              {{ r.actif ? 'Actif' : 'Inactif' }}
             </span>
           </div>
           <div class="card-body detail-grid">
             <div class="detail-item" style="grid-column: 1 / -1">
               <span class="detail-label">Description</span>
-              <span class="detail-value">{{ role()?.description }}</span>
+              <span class="detail-value">{{ r.description }}</span>
             </div>
             <div class="detail-item">
               <span class="detail-label">Niveau d'Accès</span>
-              <span class="detail-value font-medium">{{ role()?.niveau_acces }}</span>
+              <span class="detail-value font-medium">{{ r.niveau_acces }}</span>
             </div>
           </div>
         </div>
@@ -59,9 +55,9 @@ import { Role } from '@app/core/models';
                 <div class="perm-row">
                   <div class="perm-module">{{ mod === '*' ? 'TOUT LE SYSTÈME' : mod | uppercase }}</div>
                   <div class="perm-actions">
-                    <span class="badge" [class.badge-success]="role()?.permissions![mod]?.read" [class.badge-neutral]="!role()?.permissions![mod]?.read">Lecture</span>
-                    <span class="badge" [class.badge-primary]="role()?.permissions![mod]?.write" [class.badge-neutral]="!role()?.permissions![mod]?.write">Écriture</span>
-                    @if (role()?.permissions![mod]?.delete) {
+                    <span class="badge" [class.badge-success]="r.permissions![mod]?.read" [class.badge-neutral]="!r.permissions![mod]?.read">Lecture</span>
+                    <span class="badge" [class.badge-primary]="r.permissions![mod]?.write" [class.badge-neutral]="!r.permissions![mod]?.write">Écriture</span>
+                    @if (r.permissions![mod]?.delete) {
                       <span class="badge badge-danger">Suppression</span>
                     }
                   </div>
@@ -88,11 +84,10 @@ import { Role } from '@app/core/models';
     .perm-actions { display: flex; gap: 0.25rem; }
   `]
 })
-export class RoleDetailComponent implements OnInit {
-  private http = inject(HttpClient);
-  item = input<any | null>(null);
+export class RoleDetailComponent {
+  item = input<Role | null>(null);
 
-  role = computed(() => this.item() as Role | null);
+  role = computed(() => this.item());
 
   permissionsKeys = computed(() => {
     const r = this.role();
@@ -104,11 +99,4 @@ export class RoleDetailComponent implements OnInit {
     const r = this.role();
     return r?.permissions?.['*'] !== undefined;
   });
-
-  ngOnInit() {
-    const id = this.item() ? (this.item()?.id || this.item()?.config_id || this.item()?.patient_id || this.item()?.orientation_id) : null;
-    if (id) {
-      
-    }
-  }
 }

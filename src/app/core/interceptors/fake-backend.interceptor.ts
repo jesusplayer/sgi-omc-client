@@ -121,8 +121,14 @@ export const fakeBackendInterceptor: HttpInterceptorFn = (req, next) => {
             return handleDelete(db.prises_en_charge, extractId(url));
 
         // ── LITS ──
-        if (url === '/api/categories-lit' && method === 'GET')
+        if (url === '/api/categories-lits' && method === 'GET')
             return ok(await db.categories_lit.filter((c) => c.actif).toArray());
+        if (url === '/api/categories-lits' && method === 'POST')
+            return handleCreate(db.categories_lit, req.body, 'categorie_id');
+        if (url.match(/^\/api\/categories-lits\/[\w-]+$/) && method === 'GET')
+            return handleGetById(db.categories_lit, extractId(url), 'categorie_id');
+        if (url.match(/^\/api\/categories-lits\/[\w-]+$/) && method === 'PUT')
+            return handleUpdate(db.categories_lit, extractId(url), req.body, 'categorie_id');
         if (url === '/api/lits' && method === 'GET')
             return ok(await db.lits.toArray());
         if (url.match(/^\/api\/lits\/site\/[\w-]+$/) && method === 'GET') {
@@ -158,6 +164,18 @@ export const fakeBackendInterceptor: HttpInterceptorFn = (req, next) => {
         if (url === '/api/consommations-stock' && method === 'POST')
             return handleCreate(db.consommations_stock, req.body, 'conso_id');
 
+        // ── CONFIGURATIONS ALERTE ──
+        if (url === '/api/configurations-alerte' && method === 'GET')
+            return ok(await db.configurations_alerte.toArray());
+        if (url === '/api/configurations-alerte' && method === 'POST')
+            return handleCreate(db.configurations_alerte, req.body, 'config_id');
+        if (url.match(/^\/api\/configurations-alerte\/[\w-]+$/) && method === 'PUT')
+            return handleUpdate(db.configurations_alerte, extractId(url), req.body, 'config_id');
+        if (url.match(/^\/api\/configurations-alerte\/[\w-]+$/) && method === 'GET')
+            return handleGetById(db.configurations_alerte, extractId(url), 'config_id');
+        if (url.match(/^\/api\/configurations-alerte\/[\w-]+$/) && method === 'DELETE')
+            return handleDelete(db.configurations_alerte, extractId(url));
+
         // ── ALERTES ──
         if (url === '/api/alertes' && method === 'GET')
             return ok(await db.alertes.toArray());
@@ -189,6 +207,8 @@ export const fakeBackendInterceptor: HttpInterceptorFn = (req, next) => {
         // ── ROLES ──
         if (url === '/api/roles' && method === 'GET')
             return ok(await db.roles.filter((r) => r.actif).toArray());
+        if (url.match(/^\/api\/roles\/[\w-]+$/) && method === 'GET')
+            return handleGetById(db.roles, extractId(url), 'role_id');
 
         // ── VACCINATIONS ──
         if (url === '/api/vaccinations' && method === 'GET')

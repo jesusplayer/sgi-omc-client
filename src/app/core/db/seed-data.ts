@@ -16,8 +16,7 @@ const d = (offset: number) => {
 };
 
 export async function seedDatabase(): Promise<void> {
-    const count = await db.roles.count();
-    if (count > 0) return; // Already seeded
+    // Progressive Seeding: Only insert missing entities
 
     // ──── ROLES ────
     const roles: Role[] = [
@@ -135,12 +134,22 @@ export async function seedDatabase(): Promise<void> {
         { produit_id: 'prod-002', code_produit: 'MED-AMOX-500', designation: 'Amoxicilline 500mg gélules', categorie: 'MEDICAMENT', dci: 'Amoxicilline', forme: 'Gélule', dosage: '500mg', unite_base: 'gélules', actif: true, necessite_froid: false, created_at: now() },
         { produit_id: 'prod-003', code_produit: 'MED-IBUP-400', designation: 'Ibuprofène 400mg comprimés', categorie: 'MEDICAMENT', dci: 'Ibuprofène', forme: 'Comprimé', dosage: '400mg', unite_base: 'comprimés', actif: true, necessite_froid: false, created_at: now() },
         { produit_id: 'prod-004', code_produit: 'MED-OMEP-40', designation: 'Oméprazole 40mg injectable', categorie: 'MEDICAMENT', dci: 'Oméprazole', forme: 'Injectable', dosage: '40mg', unite_base: 'ampoules', actif: true, necessite_froid: true, created_at: now() },
-        { produit_id: 'prod-005', code_produit: 'EPI-GANT-L', designation: 'Gants latex taille L', categorie: 'EPI', forme: 'Boîte de 100', unite_base: 'boîtes', actif: true, necessite_froid: false, created_at: now() },
-        { produit_id: 'prod-006', code_produit: 'EPI-MASQ-FFP2', designation: 'Masques FFP2', categorie: 'EPI', forme: 'Boîte de 50', unite_base: 'boîtes', actif: true, necessite_froid: false, created_at: now() },
-        { produit_id: 'prod-007', code_produit: 'CONS-COMP-10', designation: 'Compresses stériles 10×10', categorie: 'CONSOMMABLE', forme: 'Paquet de 25', unite_base: 'paquets', actif: true, necessite_froid: false, created_at: now() },
-        { produit_id: 'prod-008', code_produit: 'MAT-THERM-IR', designation: 'Thermomètre infrarouge', categorie: 'MATERIEL', forme: 'Unité', unite_base: 'unités', actif: true, necessite_froid: false, created_at: now() },
-        { produit_id: 'prod-009', code_produit: 'MED-OSEL-75', designation: 'Oseltamivir 75mg gélules', categorie: 'MEDICAMENT', dci: 'Oseltamivir', forme: 'Gélule', dosage: '75mg', unite_base: 'gélules', actif: true, necessite_froid: false, created_at: now() },
-        { produit_id: 'prod-010', code_produit: 'CONS-SER-10', designation: 'Seringues 10ml', categorie: 'CONSOMMABLE', forme: 'Boîte de 100', unite_base: 'boîtes', actif: true, necessite_froid: false, created_at: now() },
+        { produit_id: 'prod-005', code_produit: 'MED-ALUM-20', designation: 'Artéméther-Luméfantrine 20/120', categorie: 'MEDICAMENT', dci: 'AL', forme: 'Comprimé', dosage: '20/120mg', unite_base: 'plaquettes', actif: true, necessite_froid: false, created_at: now() },
+        { produit_id: 'prod-006', code_produit: 'MED-CEFT-1G', designation: 'Ceftriaxone 1g injectable', categorie: 'MEDICAMENT', dci: 'Ceftriaxone', forme: 'Poudre pour inj.', dosage: '1g', unite_base: 'flacons', actif: true, necessite_froid: false, created_at: now() },
+        { produit_id: 'prod-007', code_produit: 'MED-ADRE-1MG', designation: 'Adrénaline 1mg/ml', categorie: 'MEDICAMENT', dci: 'Adrénaline', forme: 'Injectable', dosage: '1mg', unite_base: 'ampoules', actif: true, necessite_froid: true, created_at: now() },
+        { produit_id: 'prod-008', code_produit: 'SOL-SAL-500', designation: 'Sérum Salé 0.9% 500ml', categorie: 'CONSOMMABLE', dci: 'NaCl', forme: 'Poche', dosage: '0.9%', unite_base: 'unités', actif: true, necessite_froid: false, created_at: now() },
+        { produit_id: 'prod-009', code_produit: 'SOL-GLU-500', designation: 'Sérum Glucosé 5% 500ml', categorie: 'CONSOMMABLE', dci: 'Glucose', forme: 'Poche', dosage: '5%', unite_base: 'unités', actif: true, necessite_froid: false, created_at: now() },
+        { produit_id: 'prod-010', code_produit: 'EPI-GANT-L', designation: 'Gants latex taille L', categorie: 'EPI', forme: 'Boîte de 100', unite_base: 'boîtes', actif: true, necessite_froid: false, created_at: now() },
+        { produit_id: 'prod-011', code_produit: 'EPI-MASQ-FFP2', designation: 'Masques FFP2', categorie: 'EPI', forme: 'Boîte de 50', unite_base: 'boîtes', actif: true, necessite_froid: false, created_at: now() },
+        { produit_id: 'prod-012', code_produit: 'EPI-BLOU-JET', designation: 'Blouse jetable', categorie: 'EPI', forme: 'Unité', unite_base: 'unités', actif: true, necessite_froid: false, created_at: now() },
+        { produit_id: 'prod-013', code_produit: 'CONS-COMP-10', designation: 'Compresses stériles 10×10', categorie: 'CONSOMMABLE', forme: 'Paquet de 25', unite_base: 'paquets', actif: true, necessite_froid: false, created_at: now() },
+        { produit_id: 'prod-014', code_produit: 'CONS-SER-10', designation: 'Seringues 10ml', categorie: 'CONSOMMABLE', forme: 'Boîte de 100', unite_base: 'boîtes', actif: true, necessite_froid: false, created_at: now() },
+        { produit_id: 'prod-015', code_produit: 'CONS-CAT-22', designation: 'Cathéter 22G', categorie: 'CONSOMMABLE', forme: 'Boîte de 50', unite_base: 'boîtes', actif: true, necessite_froid: false, created_at: now() },
+        { produit_id: 'prod-016', code_produit: 'TES-RAP-PALO', designation: 'Test Rapide Paludisme', categorie: 'CONSOMMABLE', forme: 'Boîte de 25', unite_base: 'boîtes', actif: true, necessite_froid: false, created_at: now() },
+        { produit_id: 'prod-017', code_produit: 'MAT-THERM-IR', designation: 'Thermomètre infrarouge', categorie: 'MATERIEL', forme: 'Unité', unite_base: 'unités', actif: true, necessite_froid: false, created_at: now() },
+        { produit_id: 'prod-018', code_produit: 'MAT-OXY-POR', designation: 'Oxymètre de pouls portable', categorie: 'MATERIEL', forme: 'Unité', unite_base: 'unités', actif: true, necessite_froid: false, created_at: now() },
+        { produit_id: 'prod-019', code_produit: 'MAT-TENS-BR', designation: 'Tensiomètre bras', categorie: 'MATERIEL', forme: 'Unité', unite_base: 'unités', actif: true, necessite_froid: false, created_at: now() },
+        { produit_id: 'prod-020', code_produit: 'MAT-GLUC-CH', designation: 'Lecteur de glycémie', categorie: 'MATERIEL', forme: 'Unité', unite_base: 'unités', actif: true, necessite_froid: false, created_at: now() },
     ];
 
     // ──── STOCKS (par site PMA et FOSA) ────
@@ -191,21 +200,21 @@ export async function seedDatabase(): Promise<void> {
         db.prises_en_charge, db.catalogue_produits, db.stocks, db.alertes,
         db.configurations_alerte, db.vaccinations,
     ], async () => {
-        await db.roles.bulkAdd(roles);
-        await db.sites.bulkAdd(sites);
-        await db.utilisateurs.bulkAdd(users);
-        await db.categories_lit.bulkAdd(categories);
-        await db.lits.bulkAdd(lits);
-        await db.patients.bulkAdd(patients);
-        await db.tracing_vol.bulkAdd(tracings);
-        await db.consultations.bulkAdd(consultations);
-        await db.orientations.bulkAdd(orientations);
-        await db.prises_en_charge.bulkAdd(pecs);
-        await db.catalogue_produits.bulkAdd(produits);
-        await db.stocks.bulkAdd(stocks);
-        await db.alertes.bulkAdd(alertes);
-        await db.configurations_alerte.bulkAdd(configs);
-        await db.vaccinations.bulkAdd(vaccinations);
+        if (await db.roles.count() === 0) await db.roles.bulkAdd(roles);
+        if (await db.sites.count() === 0) await db.sites.bulkAdd(sites);
+        if (await db.utilisateurs.count() === 0) await db.utilisateurs.bulkAdd(users);
+        if (await db.categories_lit.count() === 0) await db.categories_lit.bulkAdd(categories);
+        if (await db.lits.count() === 0) await db.lits.bulkAdd(lits);
+        if (await db.patients.count() === 0) await db.patients.bulkAdd(patients);
+        if (await db.tracing_vol.count() === 0) await db.tracing_vol.bulkAdd(tracings);
+        if (await db.consultations.count() === 0) await db.consultations.bulkAdd(consultations);
+        if (await db.orientations.count() === 0) await db.orientations.bulkAdd(orientations);
+        if (await db.prises_en_charge.count() === 0) await db.prises_en_charge.bulkAdd(pecs);
+        if (await db.catalogue_produits.count() === 0) await db.catalogue_produits.bulkAdd(produits);
+        if (await db.stocks.count() === 0) await db.stocks.bulkAdd(stocks);
+        if (await db.alertes.count() === 0) await db.alertes.bulkAdd(alertes);
+        if (await db.configurations_alerte.count() === 0) await db.configurations_alerte.bulkAdd(configs);
+        if (await db.vaccinations.count() === 0) await db.vaccinations.bulkAdd(vaccinations);
     });
 
     console.log('✅ SGI OMC Database seeded successfully');

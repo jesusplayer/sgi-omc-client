@@ -1,68 +1,25 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, input } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, input, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { Lit, Site, CategorieLit } from '../../core/models';
+import { GenericFormComponent } from '../../shared/components/generic-form/generic-form.component';
+import { FormSection } from '../../shared/models/form.models';
 
 @Component({
   selector: 'app-lit-form',
   standalone: true,
-  imports: [FormsModule],
+  imports: [GenericFormComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="page-header">
-      <div>
-        <h1>{{ isEdit() ? '✏️ Modifier' : '➕ Nouveau' }} lit</h1>
-        <p>Gestion d'un lit physique dans un site sanitaire</p>
-      </div>
-    </div>
-
-    <div class="card" style="max-width:600px">
-      <form (ngSubmit)="onSubmit()">
-        <div class="form-group" style="margin-bottom:1.5rem">
-          <label class="form-label">Site FOSA / PMA *</label>
-          <select class="form-control" [(ngModel)]="form.site_id" name="site_id" required [disabled]="isEdit()">
-            <option value="" disabled>Sélectionner un site</option>
-            @for (s of sites(); track s.site_id) {
-              <option [value]="s.site_id">{{ s.nom }}</option>
-            }
-          </select>
-        </div>
-
-        <div class="form-group" style="margin-bottom:1.5rem">
-          <label class="form-label">Catégorie du lit *</label>
-          <select class="form-control" [(ngModel)]="form.categorie_id" name="categorie_id" required>
-            <option value="" disabled>Sélectionner une catégorie</option>
-            @for (c of categories(); track c.categorie_id) {
-              <option [value]="c.categorie_id">{{ c.libelle }}</option>
-            }
-          </select>
-        </div>
-
-        <div class="grid grid-2" style="gap:1rem;margin-bottom:1.5rem">
-          <div class="form-group">
-            <label class="form-label">Numéro de lit *</label>
-            <input class="form-control" [(ngModel)]="form.numero_lit" name="numero_lit" required placeholder="Ex: REA-01, CHB-214" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Statut initial *</label>
-            <select class="form-control" [(ngModel)]="form.statut" name="statut" required>
-              <option value="LIBRE">Libre</option>
-              <option value="OCCUPE">Occupé</option>
-              <option value="HORS_SERVICE">Hors service</option>
-              <option value="RESERVE">Réservé</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="flex gap-2" style="margin-top:2rem">
-          <button type="submit" class="btn btn-primary" [disabled]="!form.site_id || !form.categorie_id || !form.numero_lit">
-            {{ isEdit() ? '💾 Enregistrer' : '✅ Créer' }}
-          </button>
-          <button type="button" class="btn btn-outline" (click)="onCancel()">Annuler</button>
-        </div>
-      </form>
-    </div>
+    <app-generic-form
+      [title]="isEdit() ? '✏️ Modifier lit' : '➕ Nouveau lit'"
+      subtitle="Gestion d'un lit physique dans un site sanitaire"
+      maxWidth="600px"
+      [schema]="currentSchema()"
+      [(formData)]="form"
+      (save)="onSubmit()"
+      (cancel)="onCancel()"
+    ></app-generic-form>
   `,
 })
 export class LitFormComponent implements OnInit {
@@ -84,13 +41,52 @@ export class LitFormComponent implements OnInit {
     statut: 'LIBRE'
   };
 
+  currentSchema = computed(() => {
+    return [
+      {
+        fields: [
+          {
+            key: 'site_id',
+            label: 'Site FOSA / PMA',
+            type: 'select',
+            required: true,
+            disabled: this.isEdit(),
+            options: this.sites().map(s => ({ value: s.site_id, label: s.nom }))
+          },
+          {
+            key: 'categorie_id',
+            label: 'Catégorie du lit',
+            type: 'select',
+            required: true,
+            options: this.categories().map(c => ({ value: c.categorie_id!, label: c.libelle }))
+          }
+        ]
+      },
+      {
+        gridColumns: 2,
+        fields: [
+          { key: 'numero_lit', label: 'Numéro de lit', type: 'text', required: true, placeholder: 'Ex: REA-01, CHB-214' },
+          {
+            key: 'statut', label: 'Statut initial', type: 'select', required: true,
+            options: [
+              { value: 'LIBRE', label: 'Libre' },
+              { value: 'OCCUPE', label: 'Occupé' },
+              { value: 'HORS_SERVICE', label: 'Hors service' },
+              { value: 'RESERVE', label: 'Réservé' }
+            ]
+          }
+        ]
+      }
+    ] as FormSection[];
+  });
+
   ngOnInit() {
     this.http.get<Site[]>('/api/sites').subscribe(res => {
       this.sites.set(res.filter(s => ['FOSA', 'PMA_HOTEL', 'PMA_PALAIS', 'PMA_HV'].includes(s.type_site)));
     });
     this.http.get<CategorieLit[]>('/api/categories-lits').subscribe(c => this.categories.set(c));
 
-    const id = this.item() ? (this.item()?.id || this.item()?.config_id || this.item()?.patient_id || this.item()?.orientation_id) : null;
+    const id = this.item() ? (this.item()?.id || this.item()?.lit_id) : null;
     if (id) {
       this.isEdit.set(true);
       this.litId = id;
@@ -105,7 +101,6 @@ export class LitFormComponent implements OnInit {
   onSubmit() {
     if (!this.form.site_id || !this.form.categorie_id || !this.form.numero_lit) return;
 
-    // Le updated_at est généré automatiquement côté backend (ou ici)
     this.form.updated_at = new Date().toISOString();
 
     if (this.isEdit()) {

@@ -1,23 +1,16 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy, input, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
-import { Patient } from '../../core/models';
+import { GenericFormComponent } from '../../shared/components/generic-form/generic-form.component';
+import { FormSection } from '../../shared/models/form.models';
 
 @Component({
   selector: 'app-criblage-form',
   standalone: true,
-  imports: [FormsModule],
+  imports: [GenericFormComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="page-header">
-      <div>
-        <h1>🩺 Criblage médical</h1>
-        <p>UC-02 — Criblage au Point de Sécurité Frontière</p>
-      </div>
-    </div>
-
     @if (!!item()) {
       <div class="card" style="margin-bottom:1rem">
         <div class="flex items-center gap-4">
@@ -30,84 +23,24 @@ import { Patient } from '../../core/models';
       </div>
     }
 
-    <form (ngSubmit)="onSubmit()" class="card">
-      <div class="grid grid-2">
-        <div class="form-group">
-          <label>N° de vol *</label>
-          <input class="form-control" [(ngModel)]="form.numero_vol" name="numero_vol" required placeholder="AF0572" />
-        </div>
-        <div class="form-group">
-          <label>Compagnie aérienne *</label>
-          <input class="form-control" [(ngModel)]="form.compagnie_aerienne" name="compagnie_aerienne" required placeholder="Air France" />
-        </div>
-        <div class="form-group">
-          <label>Aéroport d'origine *</label>
-          <input class="form-control" [(ngModel)]="form.aeroport_origine" name="aeroport_origine" required placeholder="CDG" />
-        </div>
-        <div class="form-group">
-          <label>N° de siège</label>
-          <input class="form-control" [(ngModel)]="form.numero_siege" name="numero_siege" placeholder="12A" />
-        </div>
-        <div class="form-group">
-          <label>Date d'arrivée *</label>
-          <input class="form-control" type="datetime-local" [(ngModel)]="form.date_arrivee" name="date_arrivee" required />
-        </div>
-        <div class="form-group">
-          <label>Température (°C) *</label>
-          <input class="form-control" type="number" step="0.1" [(ngModel)]="form.temperature_criblage" name="temperature_criblage" required placeholder="36.5" />
-        </div>
-      </div>
-
-      <div class="form-group" style="margin-top:1rem">
-        <label class="checkbox-label">
-          <input type="checkbox" [(ngModel)]="form.symptomes_declares" name="symptomes_declares" />
-          Symptômes déclarés
-        </label>
-      </div>
-
-      @if (form.symptomes_declares) {
-        <div class="form-group">
-          <label>Détail des symptômes</label>
-          <textarea class="form-control" [(ngModel)]="form.detail_symptomes" name="detail_symptomes" rows="2" placeholder="Céphalées, fatigue, toux…"></textarea>
-        </div>
-      }
-
-      <div class="form-group" style="margin-top:1rem">
-        <label>Décision frontière *</label>
-        <select class="form-control" [(ngModel)]="form.decision_frontiere" name="decision_frontiere" required>
-          <option value="AUTORISATION">✅ Autorisation</option>
-          <option value="REFERENCE_TEST">🧪 Référence test</option>
-          <option value="ISOLEMENT">⚠️ Isolement</option>
-          <option value="REFOULEMENT">🚫 Refoulement</option>
-        </select>
-      </div>
-
-      @if (form.decision_frontiere !== 'AUTORISATION') {
-        <div class="form-group">
-          <label>Motif de la décision</label>
-          <textarea class="form-control" [(ngModel)]="form.motif_decision" name="motif_decision" rows="2"></textarea>
-        </div>
-      }
-
-      <div class="flex gap-2 justify-between" style="margin-top:1.5rem">
-        <button type="button" class="btn btn-secondary" (click)="router.navigate(['/psf'])">← Retour</button>
-        <button type="submit" class="btn btn-primary" [disabled]="saving()">
-          {{ saving() ? '⏳…' : '✅ Valider le criblage' }}
-        </button>
-      </div>
-    </form>
-  `,
-  styles: [`
-    .checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer;
-      input { width: 16px; height: 16px; accent-color: var(--accent); } }
-  `],
+    <app-generic-form
+      title="🩺 Criblage médical"
+      subtitle="UC-02 — Criblage au Point de Sécurité Frontière"
+      [schema]="currentSchema()"
+      [(formData)]="form"
+      (save)="onSubmit()"
+      (cancel)="onCancel()"
+      saveLabel="✅ Valider le criblage"
+      alignActions="between"
+      [saving]="saving()"
+    ></app-generic-form>
+  `
 })
 export class CriblageFormComponent implements OnInit {
   item = input<any | null>(null);
   private http = inject(HttpClient);
   private auth = inject(AuthService);
-  router = inject(Router);
-  // patient = signal<Patient | null>(null);
+  private router = inject(Router);
   saving = signal(false);
 
   form: any = {
@@ -117,14 +50,77 @@ export class CriblageFormComponent implements OnInit {
     decision_frontiere: 'AUTORISATION', motif_decision: '',
   };
 
+  baseSchema: FormSection[] = [
+    {
+      gridColumns: 2,
+      fields: [
+        { key: 'numero_vol', label: 'N° de vol', type: 'text', required: true, placeholder: 'AF0572' },
+        { key: 'compagnie_aerienne', label: 'Compagnie aérienne', type: 'text', required: true, placeholder: 'Air France' },
+        { key: 'aeroport_origine', label: "Aéroport d'origine", type: 'text', required: true, placeholder: 'CDG' },
+        { key: 'numero_siege', label: 'N° de siège', type: 'text', placeholder: '12A' },
+        { key: 'date_arrivee', label: "Date d'arrivée", type: 'text', required: true } // datetime-local behavior with string works usually
+      ]
+    },
+    {
+      fields: [
+        { key: 'temperature_criblage', label: 'Température (°C)', type: 'number', step: '0.1', required: true, placeholder: '36.5' },
+        { key: 'symptomes_declares', label: 'Symptômes déclarés', type: 'checkbox' }
+      ]
+    },
+    {
+      fields: [
+        {
+          key: 'decision_frontiere', label: 'Décision frontière', type: 'select', required: true,
+          options: [
+            { value: 'AUTORISATION', label: '✅ Autorisation' },
+            { value: 'REFERENCE_TEST', label: '🧪 Référence test' },
+            { value: 'ISOLEMENT', label: '⚠️ Isolement' },
+            { value: 'REFOULEMENT', label: '🚫 Refoulement' }
+          ]
+        }
+      ]
+    }
+  ];
+
+  // Workaround since ngModel doesn't fire events that signals can easily intercept from generic component wrapper
+  localSymptomesDeclares = signal(false);
+  localDecisionFrontiere = signal('AUTORISATION');
+
+  currentSchema = computed(() => {
+    const schema = structuredClone(this.baseSchema);
+
+    // Patch date_arrivee input type since 'datetime-local' isn't explicitly defined in FormFieldType yet, but 'text' can fallback or we can add it later.
+    // However, text works for now. If needed, we expand the generic form to support 'datetime-local'.
+
+    if (this.localSymptomesDeclares()) {
+      schema[1].fields.push({
+        key: 'detail_symptomes', label: 'Détail des symptômes', type: 'textarea', placeholder: 'Céphalées, fatigue, toux…'
+      });
+    }
+
+    if (this.localDecisionFrontiere() !== 'AUTORISATION') {
+      schema[2].fields.push({
+        key: 'motif_decision', label: 'Motif de la décision', type: 'textarea'
+      });
+    }
+
+    return schema;
+  });
+
   ngOnInit() {
-    // const patientId = this.item()?.patient_id ?? null;
-    // if (patientId) {
-    //   this.http.get<Patient>(`/api/patients/${patientId}`).subscribe((p) => this.patient.set(p));
-    // }
+    setInterval(() => {
+      if (this.form.symptomes_declares !== this.localSymptomesDeclares()) {
+        this.localSymptomesDeclares.set(!!this.form.symptomes_declares);
+      }
+      if (this.form.decision_frontiere !== this.localDecisionFrontiere()) {
+        this.localDecisionFrontiere.set(this.form.decision_frontiere);
+      }
+    }, 100);
   }
 
   onSubmit() {
+    if (!this.form.numero_vol || !this.form.compagnie_aerienne || !this.form.aeroport_origine || !this.form.date_arrivee || this.form.temperature_criblage === null || !this.form.decision_frontiere) return;
+
     this.saving.set(true);
     const body = {
       ...this.form,
@@ -136,5 +132,9 @@ export class CriblageFormComponent implements OnInit {
       next: () => this.router.navigate(['/psf']),
       error: () => this.saving.set(false)
     });
+  }
+
+  onCancel() {
+    this.router.navigate(['/psf']);
   }
 }

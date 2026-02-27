@@ -1,179 +1,142 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router, RouterLink } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ConfigurationAlerte, Operateur, CanalNotification } from '@app/core/models';
+import { GenericFormComponent } from '../../shared/components/generic-form/generic-form.component';
+import { FormSection } from '../../shared/models/form.models';
 
 @Component({
   selector: 'app-alerte-config-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [GenericFormComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="page-header">
-      <div>
-        <a routerLink="/admin/alertes-config" class="text-muted" style="text-decoration:none">← Retour aux règles</a>
-        <h1>{{ isEdit() ? 'Modifier la Règle' : 'Nouvelle Règle d\\'Alerte' }}</h1>
-      </div>
-    </div>
-
-    <div class="card" style="max-width:800px">
-      <div class="card-body">
-        <form [formGroup]="form" (ngSubmit)="onSubmit()">
-          
-          <div class="form-grid">
-            <!-- Informations Générales -->
-            <div class="form-group">
-              <label>Code Règle <span class="required">*</span></label>
-              <input type="text" class="form-control" formControlName="code_regle" [readonly]="isEdit()" placeholder="ex: TEMP_CRIBLAGE">
-            </div>
-
-            <div class="form-group" style="grid-column: 1 / -1">
-              <label>Libellé <span class="required">*</span></label>
-              <input type="text" class="form-control" formControlName="libelle" placeholder="Courte description de l'alerte">
-            </div>
-
-            <!-- Déclenchement -->
-            <div class="form-group">
-              <label>Entité Source <span class="required">*</span></label>
-              <select class="form-control" formControlName="entite_source">
-                <option value="TRACING_VOL">Tracing Vol</option>
-                <option value="STOCK">Stock</option>
-                <option value="SITE">Site (FOSA/PMA)</option>
-                <option value="CONSULTATION">Consultation</option>
-                <option value="RESULTAT_LABO">Résultat Labo</option>
-                <option value="PRISE_EN_CHARGE">Prise en Charge</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Champ Surveillé <span class="required">*</span></label>
-              <input type="text" class="form-control" formControlName="champ_surveille" placeholder="ex: temperature_criblage">
-            </div>
-
-            <div class="form-group">
-              <label>Opérateur <span class="required">*</span></label>
-              <select class="form-control" formControlName="operateur">
-                <option value="GT">Supérieur à (>)</option>
-                <option value="GTE">Sup. ou égal (>=)</option>
-                <option value="LT">Inférieur à (<)</option>
-                <option value="LTE">Inf. ou égal (<=)</option>
-                <option value="EQ">Égal à (=)</option>
-                <option value="NEQ">Différent de (!=)</option>
-              </select>
-            </div>
-
-            <!-- Seuils -->
-            <div class="form-group" style="grid-column: 1 / -1">
-              <div style="background: var(--bg-body); padding: 1rem; border-radius: 4px; border: 1px solid var(--border-color)">
-                <label>Seuils de déclenchement (au moins un requis)</label>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 0.5rem">
-                  <div>
-                    <label style="font-size:0.8em">Seuil Niveau 1</label>
-                    <input type="number" step="any" class="form-control" formControlName="seuil_niveau1">
-                  </div>
-                  <div>
-                    <label style="font-size:0.8em">Seuil Niveau 2</label>
-                    <input type="number" step="any" class="form-control" formControlName="seuil_niveau2">
-                  </div>
-                  <div>
-                    <label style="font-size:0.8em">Seuil Niveau 3</label>
-                    <input type="number" step="any" class="form-control" formControlName="seuil_niveau3">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Diffusion -->
-            <div class="form-group">
-              <label>Canaux de Notification (Sép. par virgule)</label>
-              <input type="text" class="form-control" formControlName="canaux_notif" placeholder="PUSH, SMS, EMAIL, IN_APP">
-            </div>
-
-            <div class="form-group">
-              <label>Rôles Destinataires (Sép. par virgule)</label>
-              <input type="text" class="form-control" formControlName="roles_destinataires" placeholder="DATA, EPI, ADMIN, REG">
-            </div>
-
-            <div class="form-group">
-              <label>Cooldown (minutes)</label>
-              <input type="number" class="form-control" formControlName="cooldown_min" min="0">
-            </div>
-
-            <div class="form-group flex items-center gap-2" style="grid-column: 1 / -1; margin-top: 1rem">
-              <input type="checkbox" id="active_regle" formControlName="active">
-              <label for="active_regle" style="margin: 0">Règle active immédiatement</label>
-            </div>
-          </div>
-
-          <div class="form-actions" style="margin-top: 2rem">
-            <button type="button" class="btn btn-outline" routerLink="/admin/alertes-config">Annuler</button>
-            <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Enregistrer</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .required { color: var(--danger); }
-    .flex { display: flex; } .items-center { align-items: center; } .gap-2 { gap: 0.5rem; }
-  `]
+    <app-generic-form
+      [title]="isEdit() ? '✏️ Modifier la Règle' : '➕ Nouvelle Règle d\\'Alerte'"
+      subtitle="Configuration des paramètres système d'alerte"
+      alignActions="between"
+      maxWidth="800px"
+      [schema]="formSchema"
+      [(formData)]="form"
+      (save)="onSubmit()"
+      (cancel)="onCancel()"
+    ></app-generic-form>
+  `
 })
 export class AlerteConfigFormComponent implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
   item = input<any | null>(null);
-  private fb = inject(FormBuilder);
 
   isEdit = signal(false);
   configId: string | null = null;
 
-  form = this.fb.group({
-    code_regle: ['', Validators.required],
-    libelle: ['', Validators.required],
-    entite_source: ['', Validators.required],
-    champ_surveille: ['', Validators.required],
-    operateur: ['GTE' as Operateur, Validators.required],
-    seuil_niveau1: [null as number | null],
-    seuil_niveau2: [null as number | null],
-    seuil_niveau3: [null as number | null],
-    canaux_notif: ['PUSH, IN_APP', Validators.required],
-    roles_destinataires: ['DATA, ADMIN', Validators.required],
-    cooldown_min: [15, [Validators.required, Validators.min(0)]],
-    active: [true]
-  });
+  formSchema: FormSection[] = [
+    {
+      title: 'Informations Générales',
+      gridColumns: 2,
+      fields: [
+        { key: 'code_regle', label: 'Code Règle', type: 'text', required: true, placeholder: 'ex: TEMP_CRIBLAGE' },
+        { key: 'libelle', label: 'Libellé', type: 'text', required: true, placeholder: "Courte description de l'alerte" }
+      ]
+    },
+    {
+      title: 'Déclenchement',
+      gridColumns: 2,
+      fields: [
+        {
+          key: 'entite_source', label: 'Entité Source', type: 'select', required: true,
+          options: [
+            { value: 'TRACING_VOL', label: 'Tracing Vol' },
+            { value: 'STOCK', label: 'Stock' },
+            { value: 'SITE', label: 'Site (FOSA/PMA)' },
+            { value: 'CONSULTATION', label: 'Consultation' },
+            { value: 'RESULTAT_LABO', label: 'Résultat Labo' },
+            { value: 'PRISE_EN_CHARGE', label: 'Prise en Charge' }
+          ]
+        },
+        { key: 'champ_surveille', label: 'Champ Surveillé', type: 'text', required: true, placeholder: 'ex: temperature' },
+        {
+          key: 'operateur', label: 'Opérateur', type: 'select', required: true,
+          options: [
+            { value: 'GT', label: 'Supérieur à (>)' },
+            { value: 'GTE', label: 'Sup. ou égal (>=)' },
+            { value: 'LT', label: 'Inférieur à (<)' },
+            { value: 'LTE', label: 'Inf. ou égal (<=)' },
+            { value: 'EQ', label: 'Égal à (=)' },
+            { value: 'NEQ', label: 'Différent de (!=)' }
+          ]
+        }
+      ]
+    },
+    {
+      title: 'Seuils de déclenchement (au moins un requis)',
+      gridColumns: 3,
+      fields: [
+        { key: 'seuil_niveau1', label: 'Seuil Niveau 1', type: 'number', step: 'any' },
+        { key: 'seuil_niveau2', label: 'Seuil Niveau 2', type: 'number', step: 'any' },
+        { key: 'seuil_niveau3', label: 'Seuil Niveau 3', type: 'number', step: 'any' }
+      ]
+    },
+    {
+      title: 'Diffusion',
+      gridColumns: 2,
+      fields: [
+        { key: 'canaux_notif', label: 'Canaux de Notification (Sép. par virgule)', type: 'text', required: true, placeholder: 'PUSH, SMS, EMAIL, IN_APP' },
+        { key: 'roles_destinataires', label: 'Rôles Destinataires (Sép. par virgule)', type: 'text', required: true, placeholder: 'DATA, EPI, ADMIN, REG' },
+        { key: 'cooldown_min', label: 'Cooldown (minutes)', type: 'number', required: true, min: 0 },
+        { key: 'active', label: 'Règle active immédiatement', type: 'checkbox' }
+      ]
+    }
+  ];
+
+  form: any = {
+    code_regle: '',
+    libelle: '',
+    entite_source: '',
+    champ_surveille: '',
+    operateur: 'GTE',
+    seuil_niveau1: null,
+    seuil_niveau2: null,
+    seuil_niveau3: null,
+    canaux_notif: 'PUSH, IN_APP',
+    roles_destinataires: 'DATA, ADMIN',
+    cooldown_min: 15,
+    active: true
+  };
 
   ngOnInit() {
     this.configId = this.item() ? (this.item()?.id || this.item()?.config_id || this.item()?.patient_id || this.item()?.orientation_id) : null;
     if (this.configId) {
       this.isEdit.set(true);
+
+      // Disable 'code_regle' field in edit mode
+      this.formSchema[0].fields[0].disabled = true;
+
       const c = this.item();
       if (c) {
-        this.form.patchValue({
+        this.form = {
           ...c,
           canaux_notif: c.canaux_notif.join(', '),
           roles_destinataires: c.roles_destinataires.join(', ')
-        });
+        };
       }
     }
   }
 
   onSubmit() {
-    if (this.form.invalid) return;
+    if (!this.form.code_regle || !this.form.libelle || !this.form.entite_source || !this.form.champ_surveille) return;
 
-    const v = this.form.value;
-    const payload: Partial<ConfigurationAlerte> = {
-      ...v,
-      canaux_notif: v.canaux_notif?.split(',').map(s => s.trim() as CanalNotification) || [],
-      roles_destinataires: v.roles_destinataires?.split(',').map(s => s.trim()) || []
-    } as any;
-
-    // validation
-    if (payload.seuil_niveau1 === null && payload.seuil_niveau2 === null && payload.seuil_niveau3 === null) {
+    if (this.form.seuil_niveau1 === null && this.form.seuil_niveau2 === null && this.form.seuil_niveau3 === null) {
       alert("Au moins un seuil doit être renseigné !");
       return;
     }
+
+    const payload: Partial<ConfigurationAlerte> = {
+      ...this.form,
+      canaux_notif: this.form.canaux_notif?.split(',').map((s: string) => s.trim() as CanalNotification) || [],
+      roles_destinataires: this.form.roles_destinataires?.split(',').map((s: string) => s.trim()) || []
+    } as any;
 
     if (this.isEdit() && this.configId) {
       this.http.put(`/api/configurations-alerte/${this.configId}`, payload).subscribe(() => {
@@ -185,5 +148,9 @@ export class AlerteConfigFormComponent implements OnInit {
         this.router.navigate(['/admin/alertes-config']);
       });
     }
+  }
+
+  onCancel() {
+    this.router.navigate(['/admin/alertes-config']);
   }
 }

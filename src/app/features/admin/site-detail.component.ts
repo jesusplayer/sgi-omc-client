@@ -18,7 +18,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
           <p>{{ item()?.nom }} ({{ item()?.code_site }})</p>
         </div>
         <div class="page-actions">
-          <button class="btn btn-outline text-danger" (click)="onDelete()">🗑️ Supprimer</button>
+          <button class="btn btn-outline text-danger" (click)="onDelete()">🗑️ S      upprimer</button>
           <a [routerLink]="['/admin/sites', item()?.site_id, 'editer']" class="btn btn-primary">✏️ Modifier</a>
         </div>
       </div>

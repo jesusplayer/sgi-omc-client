@@ -35,7 +35,7 @@ export class CategorieLitListComponent implements OnInit {
       valueGetter: (c) => c.couleur_dashboard || '#ccc',
       cellStyle: "width:60px"
     },
-    { field: 'code', header: 'Code', type: 'link', valueGetter: (c) => c.code, routerLink: (c) => ['/admin/categories-lits', c.categorie_id, 'editer'], cellClass: 'font-medium' },
+    { field: 'code', header: 'Code', type: 'link', valueGetter: (c) => c.code, routerLink: (c) => ['/admin/categories-lits', c.categorie_id], cellClass: 'font-medium' },
     { field: 'libelle', header: 'Libellé', valueGetter: (c) => c.libelle },
     {
       field: 'actif', header: 'Statut', type: 'badge',

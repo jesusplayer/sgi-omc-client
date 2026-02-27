@@ -1,63 +1,45 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, input } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectorRef, input, ChangeDetectionStrategy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { GenericFormComponent } from '../../shared/components/generic-form/generic-form.component';
+import { FormSection } from '../../shared/models/form.models';
 
 @Component({
   selector: 'app-vaccination-form',
   standalone: true,
-  imports: [FormsModule],
+  imports: [GenericFormComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="page-header">
-      <div>
-        <h1>{{ isEdit() ? '✏️ Modifier' : '➕ Nouvelle' }} vaccination</h1>
-        <p>{{ isEdit() ? 'Modifier les informations de la vaccination' : 'Ajouter une nouvelle vaccination au référentiel' }}</p>
-      </div>
-    </div>
-
-    <div class="card" style="max-width:600px">
-      <form (ngSubmit)="onSubmit()">
-        <div class="form-group">
-          <label class="form-label">Libellé *</label>
-          <input class="form-control" [(ngModel)]="form.libelle" name="libelle" required placeholder="Ex: Fièvre jaune" />
-        </div>
-
-        <div class="form-group" style="margin-top:1rem">
-          <label class="form-label" style="display:flex;align-items:center;gap:0.75rem;cursor:pointer">
-            <input type="checkbox" [(ngModel)]="form.obligatoire" name="obligatoire"
-                   style="width:20px;height:20px;accent-color:var(--primary)" />
-            <span>Vaccination obligatoire</span>
-          </label>
-          <p class="text-xs text-muted" style="margin-top:0.25rem">Si cochée, cette vaccination sera marquée comme requise lors du criblage PSF</p>
-        </div>
-
-        <div class="form-group" style="margin-top:1rem">
-          <label class="form-label" style="display:flex;align-items:center;gap:0.75rem;cursor:pointer">
-            <input type="checkbox" [(ngModel)]="form.actif" name="actif"
-                   style="width:20px;height:20px;accent-color:var(--success)" />
-            <span>Actif</span>
-          </label>
-        </div>
-
-        <div class="flex gap-2" style="margin-top:1.5rem">
-          <button type="submit" class="btn btn-primary" [disabled]="!form.libelle">
-            {{ isEdit() ? '💾 Enregistrer' : '✅ Créer' }}
-          </button>
-          <button type="button" class="btn btn-outline" (click)="onCancel()">Annuler</button>
-        </div>
-      </form>
-    </div>
+    <app-generic-form
+      [title]="isEdit() ? '✏️ Modifier vaccination' : '➕ Nouvelle vaccination'"
+      [subtitle]="isEdit() ? 'Modifier les informations de la vaccination' : 'Ajouter une nouvelle vaccination au référentiel'"
+      maxWidth="600px"
+      [schema]="formSchema"
+      [(formData)]="form"
+      (save)="onSubmit()"
+      (cancel)="onCancel()"
+    ></app-generic-form>
   `,
 })
 export class VaccinationFormComponent implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
   item = input<any | null>(null);
+  private cdr = inject(ChangeDetectorRef);
 
   isEdit = signal(false);
-    private cdr = inject(ChangeDetectorRef);
   vaccinationId = '';
+
+  formSchema: FormSection[] = [
+    {
+      fields: [
+        { key: 'libelle', label: 'Libellé', type: 'text', required: true, placeholder: 'Ex: Fièvre jaune' },
+        { key: 'obligatoire', label: 'Vaccination obligatoire (Requise lors du criblage PSF)', type: 'checkbox' },
+        { key: 'actif', label: 'Actif', type: 'checkbox' }
+      ]
+    }
+  ];
+
   form = { libelle: '', obligatoire: false, actif: true };
 
   ngOnInit() {
@@ -68,7 +50,7 @@ export class VaccinationFormComponent implements OnInit {
       const v = this.item();
       if (v) {
         this.form = { libelle: v.libelle, obligatoire: v.obligatoire, actif: v.actif };
-                this.cdr.markForCheck();
+        this.cdr.markForCheck();
       }
     }
   }

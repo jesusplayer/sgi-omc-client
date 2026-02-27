@@ -1,82 +1,116 @@
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy, computed, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
+import { GenericFormComponent } from '../../shared/components/generic-form/generic-form.component';
+import { FormSection } from '../../shared/models/form.models';
 
 @Component({
-    selector: 'app-appel-form',
-    standalone: true,
-    imports: [FormsModule],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
-    <div class="page-header">
-      <h1>📞 Nouvel appel de régulation</h1>
-    </div>
-    <form (ngSubmit)="onSubmit()" class="card">
-      <div class="grid grid-2">
-        <div class="form-group">
-          <label>Type d'appelant *</label>
-          <select class="form-control" [(ngModel)]="form.type_appelant" name="type_appelant" required>
-            <option value="PMA">PMA</option><option value="PSF">PSF</option>
-            <option value="HOTEL">Hôtel</option><option value="DELEGATION">Délégation</option>
-            <option value="POLICE">Police</option><option value="AUTRE">Autre</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Nom de l'appelant</label>
-          <input class="form-control" [(ngModel)]="form.nom_appelant" name="nom_appelant" />
-        </div>
-        <div class="form-group">
-          <label>Téléphone</label>
-          <input class="form-control" [(ngModel)]="form.telephone_appelant" name="telephone_appelant" />
-        </div>
-        <div class="form-group">
-          <label>Localisation *</label>
-          <input class="form-control" [(ngModel)]="form.localisation" name="localisation" required placeholder="Site / Adresse" />
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Motif de l'appel *</label>
-        <textarea class="form-control" [(ngModel)]="form.motif_appel" name="motif_appel" required rows="2"></textarea>
-      </div>
-      <div class="grid grid-2">
-        <div class="form-group">
-          <label>Niveau de gravité (1-5) *</label>
-          <input class="form-control" type="number" min="1" max="5" [(ngModel)]="form.niveau_gravite" name="niveau_gravite" required />
-        </div>
-        <div class="form-group">
-          <label>Moyen engagé *</label>
-          <select class="form-control" [(ngModel)]="form.moyen_engage" name="moyen_engage" required>
-            <option value="CONSEIL_TEL">Conseil téléphonique</option><option value="MEDECIN_SITE">Médecin sur site</option>
-            <option value="AMBULANCE">Ambulance</option><option value="SMUR">SMUR</option>
-            <option value="AUCUN">Aucun</option>
-          </select>
-        </div>
-      </div>
-      @if (form.moyen_engage === 'CONSEIL_TEL') {
-        <div class="form-group">
-          <label>Conseil donné</label>
-          <textarea class="form-control" [(ngModel)]="form.conseil_telephone" name="conseil_telephone" rows="2"></textarea>
-        </div>
-      }
-      <div class="flex gap-2 justify-between" style="margin-top:1.5rem">
-        <button type="button" class="btn btn-secondary" (click)="router.navigate(['/regulation'])">← Retour</button>
-        <button type="submit" class="btn btn-primary" [disabled]="saving()">{{ saving() ? '⏳…' : '✅ Enregistrer' }}</button>
-      </div>
-    </form>
+  selector: 'app-appel-form',
+  standalone: true,
+  imports: [GenericFormComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <app-generic-form
+      title="📞 Nouvel appel de régulation"
+      [schema]="currentSchema()"
+      [(formData)]="form"
+      (save)="onSubmit()"
+      (cancel)="onCancel()"
+      saveLabel="✅ Enregistrer"
+      alignActions="between"
+      [saving]="saving()"
+    ></app-generic-form>
   `,
 })
-export class AppelFormComponent {
-    private http = inject(HttpClient);
-    private auth = inject(AuthService);
-    router = inject(Router);
-    saving = signal(false);
-    form: any = { type_appelant: 'PMA', nom_appelant: '', telephone_appelant: '', localisation: '', motif_appel: '', niveau_gravite: 2, moyen_engage: 'CONSEIL_TEL', conseil_telephone: '' };
+export class AppelFormComponent implements OnInit {
+  private http = inject(HttpClient);
+  private auth = inject(AuthService);
+  private router = inject(Router);
+  saving = signal(false);
 
-    onSubmit() {
-        this.saving.set(true);
-        const body = { ...this.form, regulateur_id: this.auth.user()?.user_id, datetime_appel: new Date().toISOString(), statut: 'EN_COURS' };
-        this.http.post('/api/appels-regulation', body).subscribe({ next: () => this.router.navigate(['/regulation']), error: () => this.saving.set(false) });
+  form: any = {
+    type_appelant: 'PMA', nom_appelant: '', telephone_appelant: '', localisation: '',
+    motif_appel: '', niveau_gravite: 2, moyen_engage: 'CONSEIL_TEL', conseil_telephone: ''
+  };
+
+  localMoyenEngage = signal('CONSEIL_TEL');
+
+  baseSchema: FormSection[] = [
+    {
+      gridColumns: 2,
+      fields: [
+        {
+          key: 'type_appelant', label: "Type d'appelant", type: 'select', required: true,
+          options: [
+            { value: 'PMA', label: 'PMA' },
+            { value: 'PSF', label: 'PSF' },
+            { value: 'HOTEL', label: 'Hôtel' },
+            { value: 'DELEGATION', label: 'Délégation' },
+            { value: 'POLICE', label: 'Police' },
+            { value: 'AUTRE', label: 'Autre' }
+          ]
+        },
+        { key: 'nom_appelant', label: "Nom de l'appelant", type: 'text' },
+        { key: 'telephone_appelant', label: 'Téléphone', type: 'text' },
+        { key: 'localisation', label: 'Localisation', type: 'text', required: true, placeholder: 'Site / Adresse' }
+      ]
+    },
+    {
+      fields: [
+        { key: 'motif_appel', label: "Motif de l'appel", type: 'textarea', required: true }
+      ]
+    },
+    {
+      gridColumns: 2,
+      fields: [
+        { key: 'niveau_gravite', label: 'Niveau de gravité (1-5)', type: 'number', min: 1, max: 5, required: true },
+        {
+          key: 'moyen_engage', label: 'Moyen engagé', type: 'select', required: true,
+          options: [
+            { value: 'CONSEIL_TEL', label: 'Conseil téléphonique' },
+            { value: 'MEDECIN_SITE', label: 'Médecin sur site' },
+            { value: 'AMBULANCE', label: 'Ambulance' },
+            { value: 'SMUR', label: 'SMUR' },
+            { value: 'AUCUN', label: 'Aucun' }
+          ]
+        }
+      ]
     }
+  ];
+
+  currentSchema = computed(() => {
+    const schema = structuredClone(this.baseSchema);
+    if (this.localMoyenEngage() === 'CONSEIL_TEL') {
+      schema.push({
+        fields: [
+          { key: 'conseil_telephone', label: 'Conseil donné', type: 'textarea' }
+        ]
+      });
+    }
+    return schema;
+  });
+
+  ngOnInit() {
+    setInterval(() => {
+      if (this.form.moyen_engage !== this.localMoyenEngage()) {
+        this.localMoyenEngage.set(this.form.moyen_engage);
+      }
+    }, 100);
+  }
+
+  onSubmit() {
+    if (!this.form.type_appelant || !this.form.localisation || !this.form.motif_appel || !this.form.niveau_gravite || !this.form.moyen_engage) return;
+
+    this.saving.set(true);
+    const body = { ...this.form, regulateur_id: this.auth.user()?.user_id, datetime_appel: new Date().toISOString(), statut: 'EN_COURS' };
+    this.http.post('/api/appels-regulation', body).subscribe({
+      next: () => this.router.navigate(['/regulation']),
+      error: () => this.saving.set(false)
+    });
+  }
+
+  onCancel() {
+    this.router.navigate(['/regulation']);
+  }
 }
