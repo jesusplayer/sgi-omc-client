@@ -1,71 +1,48 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { RouterLink } from '@angular/router';
 import { Role } from '@app/core/models';
+import { GenericGridComponent } from '../../shared/components/generic-grid/generic-grid.component';
+import { GridColumn, GridRowAction } from '../../shared/components/generic-grid/grid.models';
 
 @Component({
   selector: 'app-role-list',
   standalone: true,
-  imports: [RouterLink],
+  imports: [GenericGridComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="page-header">
-      <div>
-        <h1>🛡️ Rôles & Permissions</h1>
-        <p>Gestion des niveaux d'accès et droits des utilisateurs</p>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <h3>Rôles Systèmes ({{ roles().length }})</h3>
-      </div>
-      <div class="table-container" style="border:none">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Code Rôle</th>
-              <th>Libellé</th>
-              <th>Description</th>
-              <th>Niveau d'Accès</th>
-              <th>Statut</th>
-              <th style="width:150px">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (role of roles(); track role.role_id) {
-              <tr [class.opacity-50]="!role.actif">
-                <td class="font-medium"><a [routerLink]="['/admin/roles', role.role_id]" class="cell-link">{{ role.code_role }}</a></td>
-                <td>{{ role.libelle }}</td>
-                <td class="text-muted">{{ role.description }}</td>
-                <td>
-                  <span class="badge badge-neutral">Niv {{ role.niveau_acces }}</span>
-                </td>
-                <td>
-                  <span class="badge" [class]="role.actif ? 'badge-success' : 'badge-neutral'">
-                    {{ role.actif ? 'Actif' : 'Inactif' }}
-                  </span>
-                </td>
-                <td>
-                  <a [routerLink]="['/admin/roles', role.role_id]" class="btn btn-sm btn-outline">👁️ Détail</a>
-                </td>
-              </tr>
-            } @empty {
-              <tr><td colspan="6" class="text-center text-muted" style="padding:2rem">Aucun rôle trouvé</td></tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .opacity-50 { opacity: 0.6; }
-    .font-medium { font-weight: 500; }
-  `]
+    <app-generic-grid
+      title="🛡️ Rôles & Permissions"
+      subtitle="Gestion des niveaux d'accès et droits des utilisateurs"
+      entityName="Rôles Systèmes"
+      [data]="roles()"
+      [columns]="columns"
+      [rowActions]="rowActions"
+      emptyMessage="Aucun rôle trouvé"
+    ></app-generic-grid>
+  `
 })
 export class RoleListComponent implements OnInit {
   private http = inject(HttpClient);
+
   roles = signal<Role[]>([]);
+
+  @ViewChild(GenericGridComponent) grid!: GenericGridComponent;
+
+  columns: GridColumn[] = [
+    { field: 'code', header: 'Code Rôle', type: 'link', valueGetter: (r) => r.code_role, routerLink: (r) => ['/admin/roles', r.role_id], cellClass: 'font-medium' },
+    { field: 'libelle', header: 'Libellé', valueGetter: (r) => r.libelle },
+    { field: 'description', header: 'Description', valueGetter: (r) => r.description, cellClass: 'text-muted' },
+    { field: 'niveau', header: "Niveau d'Accès", type: 'badge', valueGetter: (r) => `Niv ${r.niveau_acces}`, badgeColor: () => 'badge-neutral' },
+    {
+      field: 'actif', header: 'Statut', type: 'badge',
+      valueGetter: (r) => r.actif ? 'Actif' : 'Inactif',
+      badgeColor: (r) => r.actif ? 'badge-success' : 'badge-neutral'
+    }
+  ];
+
+  rowActions: GridRowAction[] = [
+    { icon: '👁️', label: 'Détail', title: 'Détail', routeFn: (r) => ['/admin/roles', r.role_id], class: 'btn-outline' }
+  ];
 
   ngOnInit() {
     this.http.get<Role[]>('/api/roles').subscribe((r) => {

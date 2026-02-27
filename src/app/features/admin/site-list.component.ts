@@ -1,95 +1,61 @@
-import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { RouterLink } from '@angular/router';
 import { Site } from '../../core/models';
 import { SiteService } from '../../core/services/site.service';
+import { GenericGridComponent } from '../../shared/components/generic-grid/generic-grid.component';
+import { GridColumn, GridRowAction, GridHeaderAction } from '../../shared/components/generic-grid/grid.models';
 
 @Component({
   selector: 'app-site-list',
   standalone: true,
-  imports: [RouterLink],
+  imports: [GenericGridComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="page-header">
-      <div>
-        <h1>🏥 Gestion des sites</h1>
-        <p>Référentiel des sites physiques (PSF, PMA, FOSA, Régulation)</p>
-      </div>
-      <div class="page-actions">
-        <a routerLink="/admin/sites/nouveau" class="btn btn-primary">+ Nouveau site</a>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <h3>Sites ({{ filtered().length }})</h3>
-        <input class="form-control" style="width:250px" placeholder="🔍 Rechercher…" (input)="onSearch($event)" />
-      </div>
-      <div class="table-container" style="border:none">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Code</th>
-              <th>Nom du site</th>
-              <th>Type</th>
-              <th>Capacité lits</th>
-              <th>Statut</th>
-              <th style="width:200px">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (s of filtered(); track s.site_id) {
-              <tr>
-                <td class="font-medium text-muted">{{ s.code_site }}</td>
-                <td class="font-medium"><a [routerLink]="['/admin/sites', s.site_id]" class="cell-link">{{ s.nom }}</a></td>
-                <td>
-                  <span class="badge badge-info">{{ s.type_site }}</span>
-                </td>
-                <td>
-                  @if (['FOSA', 'PMA_HOTEL', 'PMA_PALAIS', 'PMA_HV'].includes(s.type_site)) {
-                    <span class="text-sm">{{ s.lits_occupes }} / {{ s.capacite_lits }}</span>
-                  } @else {
-                    <span class="text-muted text-sm">—</span>
-                  }
-                </td>
-                <td>
-                  <span class="badge" [class]="s.actif ? 'badge-success' : 'badge-neutral'">
-                    {{ s.actif ? 'Actif' : 'Inactif' }}
-                  </span>
-                </td>
-                <td>
-                  <a [routerLink]="['/admin/sites', s.site_id, 'editer']" class="btn btn-sm btn-outline">✏️ Éditer</a>
-                </td>
-              </tr>
-            } @empty {
-              <tr><td colspan="6" class="text-center text-muted" style="padding:2rem">Aucun site configuré</td></tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `,
+    <app-generic-grid
+      title="🏥 Gestion des sites"
+      subtitle="Référentiel des sites physiques (PSF, PMA, FOSA, Régulation)"
+      entityName="Sites"
+      [data]="sitesResource.value() || []"
+      [columns]="columns"
+      [headerActions]="headerActions"
+      [rowActions]="rowActions"
+      emptyMessage="Aucun site configuré"
+    ></app-generic-grid>
+  `
 })
 export class SiteListComponent {
   private siteService = inject(SiteService);
 
   sitesResource = this.siteService.getAll();
-  searchTerm = signal('');
 
-  filtered = computed(() => {
-    const term = this.searchTerm().toLowerCase();
-    const sites = this.sitesResource.value();
-    if (!sites) return [];
-    if (!term) return sites;
-    return sites.filter((s) =>
-      s.code_site.toLowerCase().includes(term) ||
-      s.nom.toLowerCase().includes(term) ||
-      s.type_site.toLowerCase().includes(term)
-    );
-  });
+  @ViewChild(GenericGridComponent) grid!: GenericGridComponent;
 
-  onSearch(event: Event) {
-    this.searchTerm.set((event.target as HTMLInputElement).value);
-  }
+  columns: GridColumn[] = [
+    { field: 'code', header: 'Code', valueGetter: (s) => s.code_site, cellClass: 'font-medium text-muted' },
+    { field: 'nom', header: 'Nom du site', type: 'link', valueGetter: (s) => s.nom, routerLink: (s) => ['/admin/sites', s.site_id], cellClass: 'font-medium' },
+    { field: 'type', header: 'Type', type: 'badge', valueGetter: (s) => s.type_site, badgeColor: () => 'badge-info' },
+    {
+      field: 'capacite', header: 'Capacité lits',
+      valueGetter: (s) => {
+        if (['FOSA', 'PMA_HOTEL', 'PMA_PALAIS', 'PMA_HV'].includes(s.type_site)) {
+          return `${s.lits_occupes || 0} / ${s.capacite_lits || 0}`;
+        }
+        return '—';
+      }
+    },
+    {
+      field: 'actif', header: 'Statut', type: 'badge',
+      valueGetter: (s) => s.actif ? 'Actif' : 'Inactif',
+      badgeColor: (s) => s.actif ? 'badge-success' : 'badge-neutral'
+    }
+  ];
+
+  headerActions: GridHeaderAction[] = [
+    { label: '+ Nouveau site', route: ['/admin/sites/nouveau'], class: 'btn-primary' }
+  ];
+
+  rowActions: GridRowAction[] = [
+    { icon: '✏️', label: 'Éditer', title: 'Éditer', routeFn: (s) => ['/admin/sites', s.site_id, 'editer'], class: 'btn-outline' }
+  ];
 }
 

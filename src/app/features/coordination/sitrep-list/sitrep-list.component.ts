@@ -1,6 +1,7 @@
-import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, ChangeDetectionStrategy, signal, computed } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { GenericGridComponent } from '../../../shared/components/generic-grid/generic-grid.component';
+import { GridColumn, GridRowAction, GridHeaderAction } from '../../../shared/components/generic-grid/grid.models';
 
 interface SitRep {
   id: string;
@@ -11,66 +12,24 @@ interface SitRep {
   auteur: string;
   dateCreation: string;
 }
-
 @Component({
   selector: 'app-sitrep-list',
   standalone: true,
-  imports: [RouterLink, DatePipe],
+  imports: [GenericGridComponent],
+  providers: [DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="page-header">
-      <div>
-        <h1>📄 Rapports SITREP</h1>
-        <p>Situation Epidemiologic Reports - Generation et validation</p>
-      </div>
-      <div class="page-actions">
-        <button class="btn btn-primary" (click)="generateSitrep()">+ Générer SITREP</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <h3>Historique des rapports ({{ reports().length }})</h3>
-      </div>
-      <div class="table-container" style="border:none">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Date Création</th>
-              <th>Titre</th>
-              <th>Période Couverte</th>
-              <th>Statut</th>
-              <th>Auteur</th>
-              <th style="width:200px">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (rpt of reports(); track rpt.id) {
-              <tr>
-                <td>{{ rpt.dateCreation | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td class="font-medium"><a [routerLink]="['/coordination/sitrep', rpt.id]" class="cell-link">{{ rpt.titre }}</a></td>
-                <td class="text-muted">Du {{ rpt.periodeDebut | date:'dd/MM' }} au {{ rpt.periodeFin | date:'dd/MM' }}</td>
-                <td>
-                  <span class="badge" [class.badge-success]="rpt.statut === 'VALIDE'" [class.badge-neutral]="rpt.statut === 'BROUILLON'">
-                    {{ rpt.statut }}
-                  </span>
-                </td>
-                <td>{{ rpt.auteur }}</td>
-                <td>
-                  <a [routerLink]="['/coordination/sitrep', rpt.id]" class="btn btn-sm btn-outline">👁️ Consulter</a>
-                </td>
-              </tr>
-            } @empty {
-              <tr><td colspan="6" class="text-center text-muted" style="padding:2rem">Aucun rapport SITREP généré.</td></tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .font-medium { font-weight: 500; }
-  `]
+    <app-generic-grid
+      title="📄 Rapports SITREP"
+      subtitle="Situation Epidemiologic Reports - Generation et validation"
+      entityName="Historique des rapports"
+      [data]="reports()"
+      [columns]="columns"
+      [headerActions]="headerActions"
+      [rowActions]="rowActions"
+      emptyMessage="Aucun rapport SITREP généré."
+    ></app-generic-grid>
+  `
 })
 export class SitrepListComponent {
   reports = signal<SitRep[]>([
@@ -83,6 +42,32 @@ export class SitrepListComponent {
       statut: 'VALIDE', auteur: 'EPI (FOUDA Alain)', dateCreation: '2026-06-13T08:00:00Z'
     }
   ]);
+
+  constructor(private datePipe: DatePipe) { }
+
+  columns: GridColumn[] = [
+    { field: 'date', header: 'Date Création', type: 'date', valueGetter: (r: SitRep) => r.dateCreation },
+    { field: 'titre', header: 'Titre', type: 'link', valueGetter: (r: SitRep) => r.titre, routerLink: (r: SitRep) => ['/coordination/sitrep', r.id], cellClass: 'font-medium' },
+    {
+      field: 'periode', header: 'Période Couverte',
+      valueGetter: (r: SitRep) => `Du ${this.datePipe.transform(r.periodeDebut, 'dd/MM')} au ${this.datePipe.transform(r.periodeFin, 'dd/MM')}`,
+      cellClass: 'text-muted'
+    },
+    {
+      field: 'statut', header: 'Statut', type: 'badge',
+      valueGetter: (r: SitRep) => r.statut,
+      badgeColor: (r: SitRep) => r.statut === 'VALIDE' ? 'badge-success' : 'badge-neutral'
+    },
+    { field: 'auteur', header: 'Auteur', valueGetter: (r: SitRep) => r.auteur }
+  ];
+
+  headerActions: GridHeaderAction[] = [
+    { label: '+ Générer SITREP', action: () => this.generateSitrep(), class: 'btn-primary' }
+  ];
+
+  rowActions: GridRowAction[] = [
+    { icon: '👁️', label: 'Consulter', title: 'Consulter', routeFn: (r: SitRep) => ['/coordination/sitrep', r.id], class: 'btn-outline' }
+  ];
 
   generateSitrep() {
     // In real app: call API to generate and navigate to detail.

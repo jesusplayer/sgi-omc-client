@@ -1,77 +1,41 @@
-import { Component, inject, signal, OnInit, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, computed, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { RouterLink } from '@angular/router';
 import { Lit, Site, CategorieLit } from '../../core/models';
+import { GenericGridComponent } from '../../shared/components/generic-grid/generic-grid.component';
+import { GridColumn, GridRowAction, GridHeaderAction } from '../../shared/components/generic-grid/grid.models';
 
 @Component({
   selector: 'app-lit-list',
   standalone: true,
-  imports: [RouterLink],
+  imports: [GenericGridComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="page-header">
-      <div>
-        <h1>🛏️ Gestion des Lits</h1>
-        <p>Inventaire et statut des lits physiques par site FOSA</p>
-      </div>
-      <div class="page-actions">
-        <a routerLink="/admin/lits/nouveau" class="btn btn-primary">+ Nouveau lit</a>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="flex" style="gap:1rem;margin-bottom:1.5rem">
-        <select class="form-control" [value]="selectedSite()" (change)="onSiteChange($event)" style="max-width:300px">
-          <option value="">Tous les sites FOSA</option>
-          @for (s of sites(); track s.site_id) {
-            <option [value]="s.site_id">{{ s.nom }}</option>
-          }
-        </select>
-        
-        <select class="form-control" [value]="selectedStatus()" (change)="onStatusChange($event)" style="max-width:200px">
-          <option value="">Tous les statuts</option>
-          <option value="LIBRE">Libre</option>
-          <option value="OCCUPE">Occupé</option>
-          <option value="HORS_SERVICE">Hors service</option>
-          <option value="RESERVE">Réservé</option>
-        </select>
-        <input class="form-control" style="max-width:250px" placeholder="🔍 Rechercher…" (input)="onSearch($event)" />
-      </div>
-
-      <div class="table-container" style="border:none">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Site FOSA</th>
-              <th>Numéro</th>
-              <th>Catégorie</th>
-              <th>Statut</th>
-              <th>Dernière Maj.</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (lit of filteredLits(); track lit.lit_id) {
-              <tr>
-                <td>{{ getSiteName(lit.site_id) }}</td>
-                <td class="font-medium"><a [routerLink]="['/admin/lits', lit.lit_id, 'editer']" class="cell-link">{{ lit.numero_lit }}</a></td>
-                <td>{{ getCategoryName(lit.categorie_id) }}</td>
-                <td>
-                  <span class="badge" [class]="getStatusBadge(lit.statut)">{{ lit.statut }}</span>
-                </td>
-                <td class="text-sm text-muted">{{ formatDate(lit.updated_at) }}</td>
-                <td>
-                  <a [routerLink]="['/admin/lits', lit.lit_id, 'editer']" class="btn btn-sm btn-outline">✏️ Éditer</a>
-                </td>
-              </tr>
-            } @empty {
-              <tr><td colspan="6" class="text-center text-muted" style="padding:2rem">Aucun lit trouvé</td></tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `,
+    <app-generic-grid
+      title="🛏️ Gestion des Lits"
+      subtitle="Inventaire et statut des lits physiques par site FOSA"
+      entityName="Lits"
+      [data]="filteredLits()"
+      [columns]="columns"
+      [headerActions]="headerActions"
+      [rowActions]="rowActions"
+      emptyMessage="Aucun lit trouvé"
+    >
+      <select grid-filters class="form-control" [value]="selectedSite()" (change)="onSiteChange($event)" style="max-width:300px">
+        <option value="">Tous les sites FOSA</option>
+        @for (s of sites(); track s.site_id) {
+          <option [value]="s.site_id">{{ s.nom }}</option>
+        }
+      </select>
+      
+      <select grid-filters class="form-control" [value]="selectedStatus()" (change)="onStatusChange($event)" style="max-width:200px">
+        <option value="">Tous les statuts</option>
+        <option value="LIBRE">Libre</option>
+        <option value="OCCUPE">Occupé</option>
+        <option value="HORS_SERVICE">Hors service</option>
+        <option value="RESERVE">Réservé</option>
+      </select>
+    </app-generic-grid>
+  `
 })
 export class LitListComponent implements OnInit {
   private http = inject(HttpClient);
@@ -82,7 +46,8 @@ export class LitListComponent implements OnInit {
 
   selectedSite = signal('');
   selectedStatus = signal('');
-  searchTerm = signal('');
+
+  @ViewChild(GenericGridComponent) grid!: GenericGridComponent;
 
   filteredLits = computed(() => {
     let result = this.lits();
@@ -92,16 +57,24 @@ export class LitListComponent implements OnInit {
     if (this.selectedStatus()) {
       result = result.filter(l => l.statut === this.selectedStatus());
     }
-    const term = this.searchTerm().toLowerCase();
-    if (term) {
-      result = result.filter(l =>
-        l.numero_lit.toLowerCase().includes(term) ||
-        this.getSiteName(l.site_id).toLowerCase().includes(term) ||
-        this.getCategoryName(l.categorie_id).toLowerCase().includes(term)
-      );
-    }
     return result;
   });
+
+  columns: GridColumn[] = [
+    { field: 'site', header: 'Site FOSA', valueGetter: (l) => this.getSiteName(l.site_id) },
+    { field: 'numero', header: 'Numéro', type: 'link', valueGetter: (l) => l.numero_lit, routerLink: (l) => ['/admin/lits', l.lit_id, 'editer'], cellClass: 'font-medium' },
+    { field: 'categorie', header: 'Catégorie', valueGetter: (l) => this.getCategoryName(l.categorie_id) },
+    { field: 'statut', header: 'Statut', type: 'badge', valueGetter: (l) => l.statut, badgeColor: (l) => this.getStatusBadge(l.statut) },
+    { field: 'updated_at', header: 'Dernière Maj.', type: 'date', valueGetter: (l) => l.updated_at, cellClass: 'text-sm text-muted' },
+  ];
+
+  headerActions: GridHeaderAction[] = [
+    { label: '+ Nouveau lit', route: ['/admin/lits/nouveau'], class: 'btn-primary' }
+  ];
+
+  rowActions: GridRowAction[] = [
+    { icon: '✏️', label: 'Éditer', title: 'Éditer', routeFn: (l) => ['/admin/lits', l.lit_id, 'editer'], class: 'btn-outline' }
+  ];
 
   ngOnInit() {
     this.http.get<Lit[]>('/api/lits').subscribe(res => this.lits.set(res));
@@ -120,21 +93,12 @@ export class LitListComponent implements OnInit {
     this.selectedStatus.set((e.target as HTMLSelectElement).value);
   }
 
-  onSearch(event: Event) {
-    this.searchTerm.set((event.target as HTMLInputElement).value);
-  }
-
   getSiteName(id: string): string {
     return this.sites().find(s => s.site_id === id)?.nom || 'Inconnu';
   }
 
   getCategoryName(id: string): string {
     return this.categories().find(c => c.categorie_id === id)?.libelle || 'Inconnu';
-  }
-
-  formatDate(iso: string): string {
-    if (!iso) return '—';
-    return new Date(iso).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   }
 
   getStatusBadge(s: string): string {

@@ -1,71 +1,58 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Utilisateur, Role } from '../../core/models';
-import { RouterLink } from '@angular/router';
+import { GenericGridComponent } from '../../shared/components/generic-grid/generic-grid.component';
+import { GridColumn, GridRowAction } from '../../shared/components/generic-grid/grid.models';
 
 @Component({
   selector: 'app-utilisateur-list',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [GenericGridComponent],
   template: `
-    <div class="page-header">
-      <div>
-        <h1>👥 Gestion des utilisateurs</h1>
-        <p>Administration des comptes et rôles</p>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <h3>Utilisateurs ({{ filtered().length }})</h3>
-        <input class="form-control" style="width:250px" placeholder="🔍 Rechercher…" (input)="onSearch($event)" />
-      </div>
-      <div class="table-container" style="border:none">
-        <table class="data-table">
-          <thead>
-            <tr><th>Login</th><th>Nom Prénom</th><th>Email</th><th>Rôle</th><th>Site</th><th>Statut</th></tr>
-          </thead>
-          <tbody>
-            @for (u of filtered(); track u.user_id) {
-              <tr>
-                <td><code>{{ u.login }}</code></td>
-                <td class="font-medium"><a [routerLink]="['/admin/utilisateurs', u.user_id, 'editer']" class="cell-link">{{ u.nom }} {{ u.prenom }}</a></td>
-                <td class="text-sm">{{ u.email ?? '—' }}</td>
-                <td><span class="badge badge-info">{{ getRoleName(u.role_id) }}</span></td>
-                <td class="text-sm">{{ u.site_principal_id ?? '—' }}</td>
-                <td><span class="badge" [class]="u.actif ? 'badge-success' : 'badge-danger'">{{ u.actif ? 'Actif' : 'Inactif' }}</span></td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `,
+    <app-generic-grid
+      title="👥 Gestion des utilisateurs"
+      subtitle="Administration des comptes et rôles"
+      entityName="Utilisateurs"
+      [data]="usersData()"
+      [columns]="columns"
+      [rowActions]="rowActions"
+    ></app-generic-grid>
+  `
 })
 export class UtilisateurListComponent implements OnInit {
   private http = inject(HttpClient);
+
   users = signal<Utilisateur[]>([]);
   roles = signal<Role[]>([]);
-  filtered = signal<Utilisateur[]>([]);
-  searchTerm = signal('');
+
+  @ViewChild(GenericGridComponent) grid!: GenericGridComponent;
+
+  usersData = computed(() => {
+    const roles = this.roles();
+    return this.users().map(u => ({
+      ...u,
+      roleName: roles.find(r => r.role_id === u.role_id)?.libelle ?? u.role_id
+    }));
+  });
+
+  columns: GridColumn[] = [
+    { field: 'login', header: 'Login', valueGetter: (u) => u.login, cellClass: 'font-mono' },
+    { field: 'nomComplet', header: 'Nom Prénom', valueGetter: (u) => `${u.nom} ${u.prenom}`, type: 'link', routerLink: (u) => ['/admin/utilisateurs', u.user_id, 'editer'], cellClass: 'font-medium' },
+    { field: 'email', header: 'Email', valueGetter: (u) => u.email ?? '—' },
+    { field: 'roleName', header: 'Rôle', type: 'badge', badgeColor: () => 'badge-info' },
+    { field: 'site', header: 'Site', valueGetter: (u) => u.site_principal_id ?? '—' },
+    {
+      field: 'actif', header: 'Statut', type: 'badge',
+      valueGetter: (u) => u.actif ? 'Actif' : 'Inactif',
+      badgeColor: (u) => u.actif ? 'badge-success' : 'badge-danger'
+    }
+  ];
+
+  rowActions: GridRowAction[] = [];
 
   ngOnInit() {
-    this.http.get<Utilisateur[]>('/api/utilisateurs').subscribe((u) => { this.users.set(u); this.filtered.set(u); });
+    this.http.get<Utilisateur[]>('/api/utilisateurs').subscribe((u) => this.users.set(u));
     this.http.get<Role[]>('/api/roles').subscribe((r) => this.roles.set(r));
   }
-
-  onSearch(event: Event) {
-    this.searchTerm.set((event.target as HTMLInputElement).value);
-    const term = this.searchTerm().toLowerCase();
-    if (!term) { this.filtered.set(this.users()); return; }
-    this.filtered.set(this.users().filter((u) =>
-      u.login.toLowerCase().includes(term) ||
-      u.nom.toLowerCase().includes(term) ||
-      u.prenom.toLowerCase().includes(term) ||
-      (u.email?.toLowerCase().includes(term) ?? false)
-    ));
-  }
-
-  getRoleName(id: string): string { return this.roles().find((r) => r.role_id === id)?.libelle ?? id; }
 }
