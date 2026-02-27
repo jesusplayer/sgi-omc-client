@@ -1,5 +1,22 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { genericResolver } from './core/resolvers/generic.resolver';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export const routes: Routes = [
     {
@@ -43,6 +60,7 @@ export const routes: Routes = [
                     {
                         path: ':id/editer',
                         data: { breadcrumb: 'Modifier voyageur' },
+                        resolve: { item: genericResolver('/api/patients') },
                         loadComponent: () =>
                             import('./features/psf/voyageur-form.component').then(
                                 (m) => m.VoyageurFormComponent
@@ -51,6 +69,7 @@ export const routes: Routes = [
                     {
                         path: ':id/criblage',
                         data: { breadcrumb: 'Criblage médical' },
+                        resolve: { item: genericResolver('/api/tracing-vol') },
                         loadComponent: () =>
                             import('./features/psf/criblage-form.component').then(
                                 (m) => m.CriblageFormComponent
@@ -59,6 +78,7 @@ export const routes: Routes = [
                     {
                         path: ':id',
                         data: { breadcrumb: 'Détail voyageur' },
+                        resolve: { item: genericResolver('/api/patients') },
                         loadComponent: () =>
                             import('./features/psf/voyageur-detail.component').then(
                                 (m) => m.VoyageurDetailComponent
@@ -88,6 +108,7 @@ export const routes: Routes = [
                     {
                         path: ':id/editer',
                         data: { breadcrumb: 'Modifier consultation' },
+                        resolve: { item: genericResolver('/api/consultations') },
                         loadComponent: () =>
                             import('./features/pma/consultation-form.component').then(
                                 (m) => m.ConsultationFormComponent
@@ -96,6 +117,7 @@ export const routes: Routes = [
                     {
                         path: ':id',
                         data: { breadcrumb: 'Détail consultation' },
+                        resolve: { item: genericResolver('/api/consultations') },
                         loadComponent: () =>
                             import('./features/pma/consultation-detail.component').then(
                                 (m) => m.ConsultationDetailComponent
@@ -125,6 +147,7 @@ export const routes: Routes = [
                     {
                         path: ':id/editer',
                         data: { breadcrumb: 'Modifier appel' },
+                        resolve: { item: genericResolver('/api/appels-regulation') },
                         loadComponent: () =>
                             import('./features/regulation/appel-form.component').then(
                                 (m) => m.AppelFormComponent
@@ -133,6 +156,7 @@ export const routes: Routes = [
                     {
                         path: ':id',
                         data: { breadcrumb: 'Détail appel' },
+                        resolve: { item: genericResolver('/api/appels-regulation') },
                         loadComponent: () =>
                             import('./features/regulation/appel-detail.component').then(
                                 (m) => m.AppelDetailComponent
@@ -157,6 +181,7 @@ export const routes: Routes = [
                     {
                         path: 'orientations/:id/editer',
                         data: { breadcrumb: 'Modifier orientation' },
+                        resolve: { item: genericResolver('/api/orientations') },
                         loadComponent: () =>
                             import('./features/regulation/orientation-form.component').then(
                                 (m) => m.OrientationFormComponent
@@ -165,6 +190,7 @@ export const routes: Routes = [
                     {
                         path: 'orientations/:id',
                         data: { breadcrumb: 'Détail orientation' },
+                        resolve: { item: genericResolver('/api/orientations') },
                         loadComponent: () =>
                             import('./features/regulation/orientation-detail.component').then(
                                 (m) => m.OrientationDetailComponent
@@ -194,6 +220,7 @@ export const routes: Routes = [
                     {
                         path: ':id/editer',
                         data: { breadcrumb: 'Modifier admission' },
+                        resolve: { item: genericResolver('/api/prises-en-charge') },
                         loadComponent: () =>
                             import('./features/fosa/admission-form.component').then(
                                 (m) => m.AdmissionFormComponent
@@ -210,6 +237,7 @@ export const routes: Routes = [
                     {
                         path: ':id',
                         data: { breadcrumb: 'Détail admission' },
+                        resolve: { item: genericResolver('/api/prises-en-charge') },
                         loadComponent: () =>
                             import('./features/fosa/admission-detail.component').then(
                                 (m) => m.AdmissionDetailComponent
@@ -234,6 +262,7 @@ export const routes: Routes = [
                     {
                         path: 'laboratoire/:id/editer',
                         data: { breadcrumb: 'Saisir résultats' },
+                        resolve: { item: genericResolver('/api/resultats-labo') },
                         loadComponent: () =>
                             import('./features/fosa/laboratoire-form.component').then(
                                 (m) => m.LaboratoireFormComponent
@@ -241,13 +270,50 @@ export const routes: Routes = [
                     },
                     {
                         path: 'laboratoire/:id',
-                        data: { breadcrumb: 'Détail examen' },
+                        data: { breadcrumb: 'Détail Demande' },
+                        resolve: { item: genericResolver('/api/resultats-labo') },
                         loadComponent: () =>
                             import('./features/fosa/laboratoire-detail.component').then(
                                 (m) => m.LaboratoireDetailComponent
                             ),
                     },
                 ],
+            },
+            {
+                path: 'coordination',
+                data: { breadcrumb: 'Coordination & Rapports' },
+                children: [
+                    {
+                        path: 'sitrep',
+                        data: { breadcrumb: 'SITREP' },
+                        loadComponent: () =>
+                            import('./features/coordination/sitrep-list/sitrep-list.component').then(
+                                (m) => m.SitrepListComponent
+                            ),
+                    },
+                    {
+                        path: 'sitrep/:id',
+                        data: { breadcrumb: 'Détail SITREP' },
+                        loadComponent: () =>
+                            import('./features/coordination/sitrep-detail/sitrep-detail.component').then(
+                                (m) => m.SitrepDetailComponent
+                            ),
+                    }
+                ]
+            },
+            {
+                path: 'integration',
+                data: { breadcrumb: 'Intégration Externe' },
+                children: [
+                    {
+                        path: 'dhis2',
+                        data: { breadcrumb: 'Synchronisation DHIS2' },
+                        loadComponent: () =>
+                            import('./features/integration/dhis2-sync/dhis2-sync.component').then(
+                                (m) => m.Dhis2SyncComponent
+                            ),
+                    }
+                ]
             },
             {
                 path: 'stocks',
@@ -279,6 +345,7 @@ export const routes: Routes = [
                     {
                         path: ':id',
                         data: { breadcrumb: 'Détail stock' },
+                        resolve: { item: genericResolver('/api/stocks') },
                         loadComponent: () =>
                             import('./features/stocks/stock-detail.component').then(
                                 (m) => m.StockDetailComponent
@@ -300,6 +367,7 @@ export const routes: Routes = [
                     {
                         path: ':id',
                         data: { breadcrumb: 'Détail alerte' },
+                        resolve: { item: genericResolver('/api/alertes') },
                         loadComponent: () =>
                             import('./features/alertes/alerte-detail.component').then(
                                 (m) => m.AlerteDetailComponent
@@ -345,6 +413,7 @@ export const routes: Routes = [
                     {
                         path: 'vaccinations/:id/editer',
                         data: { breadcrumb: 'Modifier vaccination' },
+                        resolve: { item: genericResolver('/api/vaccinations') },
                         loadComponent: () =>
                             import('./features/admin/vaccination-form.component').then(
                                 (m) => m.VaccinationFormComponent
@@ -353,6 +422,7 @@ export const routes: Routes = [
                     {
                         path: 'vaccinations/:id',
                         data: { breadcrumb: 'Détail vaccination' },
+                        resolve: { item: genericResolver('/api/vaccinations') },
                         loadComponent: () =>
                             import('./features/admin/vaccination-detail.component').then(
                                 (m) => m.VaccinationDetailComponent
@@ -377,6 +447,7 @@ export const routes: Routes = [
                     {
                         path: 'sites/:id/editer',
                         data: { breadcrumb: 'Modifier site' },
+                        resolve: { item: genericResolver('/api/sites') },
                         loadComponent: () =>
                             import('./features/admin/site-form.component').then(
                                 (m) => m.SiteFormComponent
@@ -385,6 +456,7 @@ export const routes: Routes = [
                     {
                         path: 'sites/:id',
                         data: { breadcrumb: 'Détail site' },
+                        resolve: { item: genericResolver('/api/sites') },
                         loadComponent: () =>
                             import('./features/admin/site-detail.component').then(
                                 (m) => m.SiteDetailComponent
@@ -409,6 +481,7 @@ export const routes: Routes = [
                     {
                         path: 'categories-lits/:id/editer',
                         data: { breadcrumb: 'Modifier Catégorie' },
+                        resolve: { item: genericResolver('/api/categories-lit') },
                         loadComponent: () =>
                             import('./features/admin/categorie-lit-form.component').then(
                                 (m) => m.CategorieLitFormComponent
@@ -433,6 +506,7 @@ export const routes: Routes = [
                     {
                         path: 'lits/:id/editer',
                         data: { breadcrumb: 'Modifier Lit' },
+                        resolve: { item: genericResolver('/api/lits') },
                         loadComponent: () =>
                             import('./features/admin/lit-form.component').then(
                                 (m) => m.LitFormComponent
@@ -457,9 +531,69 @@ export const routes: Routes = [
                     {
                         path: 'catalogue/:id/editer',
                         data: { breadcrumb: 'Modifier Produit' },
+                        resolve: { item: genericResolver('/api/catalogue-produits') },
                         loadComponent: () =>
                             import('./features/admin/catalogue-form.component').then(
                                 (m) => m.CatalogueFormComponent
+                            ),
+                    },
+                    {
+                        path: 'alertes-config',
+                        data: { breadcrumb: 'Règles d\'alerte' },
+                        loadComponent: () =>
+                            import('./features/admin/alerte-config-list.component').then(
+                                (m) => m.AlerteConfigListComponent
+                            ),
+                    },
+                    {
+                        path: 'alertes-config/nouvelle',
+                        data: { breadcrumb: 'Nouvelle Règle' },
+                        loadComponent: () =>
+                            import('./features/admin/alerte-config-form.component').then(
+                                (m) => m.AlerteConfigFormComponent
+                            ),
+                    },
+                    {
+                        path: 'alertes-config/:id/editer',
+                        data: { breadcrumb: 'Modifier Règle' },
+                        resolve: { item: genericResolver('/api/configurations-alerte') },
+                        loadComponent: () =>
+                            import('./features/admin/alerte-config-form.component').then(
+                                (m) => m.AlerteConfigFormComponent
+                            ),
+                    },
+                    {
+                        path: 'alertes-config/:id',
+                        data: { breadcrumb: 'Détail Règle' },
+                        resolve: { item: genericResolver('/api/configurations-alerte') },
+                        loadComponent: () =>
+                            import('./features/admin/alerte-config-detail.component').then(
+                                (m) => m.AlerteConfigDetailComponent
+                            ),
+                    },
+                    {
+                        path: 'roles',
+                        data: { breadcrumb: 'Rôles' },
+                        loadComponent: () =>
+                            import('./features/admin/role-list.component').then(
+                                (m) => m.RoleListComponent
+                            ),
+                    },
+                    {
+                        path: 'roles/:id',
+                        data: { breadcrumb: 'Détail Rôle' },
+                        resolve: { item: genericResolver('/api/roles') },
+                        loadComponent: () =>
+                            import('./features/admin/role-detail.component').then(
+                                (m) => m.RoleDetailComponent
+                            ),
+                    },
+                    {
+                        path: 'audit',
+                        data: { breadcrumb: 'Journal d\'Audit' },
+                        loadComponent: () =>
+                            import('./features/admin/audit-list.component').then(
+                                (m) => m.AuditListComponent
                             ),
                     },
                 ],

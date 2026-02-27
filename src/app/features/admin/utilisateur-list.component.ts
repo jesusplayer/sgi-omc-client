@@ -1,11 +1,13 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Utilisateur, Role } from '../../core/models';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-utilisateur-list',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink],
   template: `
     <div class="page-header">
       <div>
@@ -28,7 +30,7 @@ import { Utilisateur, Role } from '../../core/models';
             @for (u of filtered(); track u.user_id) {
               <tr>
                 <td><code>{{ u.login }}</code></td>
-                <td class="font-medium">{{ u.nom }} {{ u.prenom }}</td>
+                <td class="font-medium"><a [routerLink]="['/admin/utilisateurs', u.user_id, 'editer']" class="cell-link">{{ u.nom }} {{ u.prenom }}</a></td>
                 <td class="text-sm">{{ u.email ?? '—' }}</td>
                 <td><span class="badge badge-info">{{ getRoleName(u.role_id) }}</span></td>
                 <td class="text-sm">{{ u.site_principal_id ?? '—' }}</td>

@@ -1,15 +1,15 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Site, TypeSite } from '../../core/models';
 
 @Component({
-    selector: 'app-site-form',
-    standalone: true,
-    imports: [FormsModule],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-site-form',
+  standalone: true,
+  imports: [FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     <div class="page-header">
       <div>
         <h1>{{ isEdit() ? '✏️ Modifier' : '➕ Nouveau' }} site</h1>
@@ -95,53 +95,51 @@ import { Site, TypeSite } from '../../core/models';
   `,
 })
 export class SiteFormComponent implements OnInit {
-    private http = inject(HttpClient);
-    private router = inject(Router);
-    private route = inject(ActivatedRoute);
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  item = input<Site | null>(null);
 
-    isEdit = signal(false);
-    siteId = '';
-    form: Partial<Site> = {
-        code_site: '',
-        nom: '',
-        type_site: 'FOSA',
-        adresse: '',
-        latitude: undefined,
-        longitude: undefined,
-        capacite_lits: 0,
-        lits_occupes: 0,
-        seuil_alerte_lits: 90,
-        telephone: '',
-        actif: true
-    };
+  isEdit = signal(false);
+  siteId = '';
+  form: Partial<Site> = {
+    code_site: '',
+    nom: '',
+    type_site: 'FOSA',
+    adresse: '',
+    latitude: undefined,
+    longitude: undefined,
+    capacite_lits: 0,
+    lits_occupes: 0,
+    seuil_alerte_lits: 90,
+    telephone: '',
+    actif: true
+  };
 
-    ngOnInit() {
-        const id = this.route.snapshot.paramMap.get('id');
-        if (id) {
-            this.isEdit.set(true);
-            this.siteId = id;
-            this.http.get<Site>(`/api/sites/${id}`).subscribe((s) => {
-                this.form = s;
-            });
-        }
+  ngOnInit() {
+    const site = this.item();
+    if (site) {
+      this.isEdit.set(true);
+      this.siteId = site.site_id;
+      this.form = { ...site };
     }
+  }
 
-    onSubmit() {
-        if (!this.form.nom || !this.form.code_site || !this.form.type_site) return;
+  onSubmit() {
+    if (!this.form.nom || !this.form.code_site || !this.form.type_site) return;
 
-        if (this.isEdit()) {
-            this.http.put(`/api/sites/${this.siteId}`, this.form).subscribe(() => {
-                this.router.navigate(['/admin/sites']);
-            });
-        } else {
-            const newSite = { ...this.form, created_at: new Date().toISOString() };
-            this.http.post('/api/sites', newSite).subscribe(() => {
-                this.router.navigate(['/admin/sites']);
-            });
-        }
-    }
-
-    onCancel() {
+    if (this.isEdit()) {
+      this.http.put(`/api/sites/${this.siteId}`, this.form).subscribe(() => {
         this.router.navigate(['/admin/sites']);
+      });
+    } else {
+      const newSite = { ...this.form, created_at: new Date().toISOString() };
+      this.http.post('/api/sites', newSite).subscribe(() => {
+        this.router.navigate(['/admin/sites']);
+      });
     }
+  }
+
+  onCancel() {
+    this.router.navigate(['/admin/sites']);
+  }
 }

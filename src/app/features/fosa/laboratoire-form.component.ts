@@ -1,15 +1,15 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ResultatLabo, TypeExamen, Interpretation } from '../../core/models';
 
 @Component({
-    selector: 'app-laboratoire-form',
-    standalone: true,
-    imports: [FormsModule],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-laboratoire-form',
+  standalone: true,
+  imports: [FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     <div class="page-header">
       <div>
         <h1>{{ isEdit() ? '✏️ Saisir Résultat' : '➕ Nouvelle Prescription' }}</h1>
@@ -111,60 +111,63 @@ import { ResultatLabo, TypeExamen, Interpretation } from '../../core/models';
   `,
 })
 export class LaboratoireFormComponent implements OnInit {
-    private http = inject(HttpClient);
-    private router = inject(Router);
-    private route = inject(ActivatedRoute);
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  item = input<any | null>(null);
 
-    isEdit = signal(false);
-    resultatId = '';
+  isEdit = signal(false);
+    private cdr = inject(ChangeDetectorRef);
+  resultatId = '';
 
-    nowDate = new Date();
-    nowStr = new Date(this.nowDate.getTime() - this.nowDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  nowDate = new Date();
+  nowStr = new Date(this.nowDate.getTime() - this.nowDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
-    form: Partial<ResultatLabo> = {
-        pec_id: '',
-        type_examen: 'BIOLOGIE',
-        libelle_examen: '',
-        interpretation: 'EN_ATTENTE',
-        datetime_prelevement: this.nowStr
-    };
+  form: Partial<ResultatLabo> = {
+    pec_id: '',
+    type_examen: 'BIOLOGIE',
+    libelle_examen: '',
+    interpretation: 'EN_ATTENTE',
+    datetime_prelevement: this.nowStr
+  };
 
-    ngOnInit() {
-        const id = this.route.snapshot.paramMap.get('id');
-        if (id) {
-            this.isEdit.set(true);
-            this.resultatId = id;
-            this.http.get<ResultatLabo>(`/api/laboratoire/${id}`).subscribe((res) => {
-                this.form = { ...res };
-                if (res.datetime_prelevement) this.form.datetime_prelevement = res.datetime_prelevement.slice(0, 16);
-                if (res.datetime_resultat) this.form.datetime_resultat = res.datetime_resultat.slice(0, 16);
-            });
-        }
+  ngOnInit() {
+    const id = this.item() ? (this.item()?.id || this.item()?.config_id || this.item()?.patient_id || this.item()?.orientation_id) : null;
+    if (id) {
+      this.isEdit.set(true);
+      this.resultatId = id;
+      const res = this.item();
+      if (res) {
+        this.form = { ...res };
+        if (res.datetime_prelevement) this.form.datetime_prelevement = res.datetime_prelevement.slice(0, 16);
+        if (res.datetime_resultat) this.form.datetime_resultat = res.datetime_resultat.slice(0, 16);
+                this.cdr.markForCheck();
+      }
     }
+  }
 
-    onSubmit() {
-        if (!this.form.pec_id || !this.form.libelle_examen) return;
+  onSubmit() {
+    if (!this.form.pec_id || !this.form.libelle_examen) return;
 
-        const payload = { ...this.form };
-        if (payload.datetime_prelevement) payload.datetime_prelevement = new Date(payload.datetime_prelevement).toISOString();
-        if (payload.datetime_resultat) payload.datetime_resultat = new Date(payload.datetime_resultat).toISOString();
+    const payload = { ...this.form };
+    if (payload.datetime_prelevement) payload.datetime_prelevement = new Date(payload.datetime_prelevement).toISOString();
+    if (payload.datetime_resultat) payload.datetime_resultat = new Date(payload.datetime_resultat).toISOString();
 
-        if (this.isEdit()) {
-            if (!payload.datetime_resultat && payload.interpretation !== 'EN_ATTENTE') {
-                payload.datetime_resultat = new Date().toISOString();
-            }
-            this.http.put(`/api/laboratoire/${this.resultatId}`, payload).subscribe(() => {
-                this.router.navigate(['/fosa/laboratoire']);
-            });
-        } else {
-            payload.created_at = new Date().toISOString();
-            this.http.post('/api/laboratoire', payload).subscribe(() => {
-                this.router.navigate(['/fosa/laboratoire']);
-            });
-        }
-    }
-
-    onCancel() {
+    if (this.isEdit()) {
+      if (!payload.datetime_resultat && payload.interpretation !== 'EN_ATTENTE') {
+        payload.datetime_resultat = new Date().toISOString();
+      }
+      this.http.put(`/api/laboratoire/${this.resultatId}`, payload).subscribe(() => {
         this.router.navigate(['/fosa/laboratoire']);
+      });
+    } else {
+      payload.created_at = new Date().toISOString();
+      this.http.post('/api/laboratoire', payload).subscribe(() => {
+        this.router.navigate(['/fosa/laboratoire']);
+      });
     }
+  }
+
+  onCancel() {
+    this.router.navigate(['/fosa/laboratoire']);
+  }
 }

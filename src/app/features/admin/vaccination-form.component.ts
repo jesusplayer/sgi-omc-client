@@ -1,14 +1,14 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 @Component({
-    selector: 'app-vaccination-form',
-    standalone: true,
-    imports: [FormsModule],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-vaccination-form',
+  standalone: true,
+  imports: [FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     <div class="page-header">
       <div>
         <h1>{{ isEdit() ? '✏️ Modifier' : '➕ Nouvelle' }} vaccination</h1>
@@ -51,39 +51,42 @@ import { FormsModule } from '@angular/forms';
   `,
 })
 export class VaccinationFormComponent implements OnInit {
-    private http = inject(HttpClient);
-    private router = inject(Router);
-    private route = inject(ActivatedRoute);
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  item = input<any | null>(null);
 
-    isEdit = signal(false);
-    vaccinationId = '';
-    form = { libelle: '', obligatoire: false, actif: true };
+  isEdit = signal(false);
+    private cdr = inject(ChangeDetectorRef);
+  vaccinationId = '';
+  form = { libelle: '', obligatoire: false, actif: true };
 
-    ngOnInit() {
-        const id = this.route.snapshot.paramMap.get('id');
-        if (id) {
-            this.isEdit.set(true);
-            this.vaccinationId = id;
-            this.http.get<any>(`/api/vaccinations/${id}`).subscribe((v) => {
-                this.form = { libelle: v.libelle, obligatoire: v.obligatoire, actif: v.actif };
-            });
-        }
+  ngOnInit() {
+    const id = this.item() ? (this.item()?.id || this.item()?.config_id || this.item()?.patient_id || this.item()?.orientation_id) : null;
+    if (id) {
+      this.isEdit.set(true);
+      this.vaccinationId = id;
+      const v = this.item();
+      if (v) {
+        this.form = { libelle: v.libelle, obligatoire: v.obligatoire, actif: v.actif };
+                this.cdr.markForCheck();
+      }
     }
+  }
 
-    onSubmit() {
-        if (!this.form.libelle) return;
-        if (this.isEdit()) {
-            this.http.put(`/api/vaccinations/${this.vaccinationId}`, this.form).subscribe(() => {
-                this.router.navigate(['/admin/vaccinations']);
-            });
-        } else {
-            this.http.post('/api/vaccinations', { ...this.form, created_at: new Date().toISOString() }).subscribe(() => {
-                this.router.navigate(['/admin/vaccinations']);
-            });
-        }
-    }
-
-    onCancel() {
+  onSubmit() {
+    if (!this.form.libelle) return;
+    if (this.isEdit()) {
+      this.http.put(`/api/vaccinations/${this.vaccinationId}`, this.form).subscribe(() => {
         this.router.navigate(['/admin/vaccinations']);
+      });
+    } else {
+      this.http.post('/api/vaccinations', { ...this.form, created_at: new Date().toISOString() }).subscribe(() => {
+        this.router.navigate(['/admin/vaccinations']);
+      });
     }
+  }
+
+  onCancel() {
+    this.router.navigate(['/admin/vaccinations']);
+  }
 }

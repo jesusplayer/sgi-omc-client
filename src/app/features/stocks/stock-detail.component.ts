@@ -1,14 +1,14 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { computed, Component, ChangeDetectionStrategy, input, OnInit } from '@angular/core';
+import { httpResource } from '@angular/common/http';
+import { RouterLink } from '@angular/router';
 import { Stock, CatalogueProduit, Site } from '../../core/models';
 
 @Component({
-    selector: 'app-stock-detail',
-    standalone: true,
-    imports: [RouterLink],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-stock-detail',
+  standalone: true,
+  imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     <div class="page-header">
       <div>
         <h1>📦 Détail stock</h1>
@@ -19,7 +19,19 @@ import { Stock, CatalogueProduit, Site } from '../../core/models';
       </div>
     </div>
 
-    @if (stock(); as s) {
+    <!-- @if (stockResource.isLoading()) {
+      <div style="padding: 2rem; text-align: center; color: var(--text-secondary);">
+        <p>Chargement des données...</p>
+      </div>
+    }
+
+    @if (stockResource.error()) {
+      <div class="alert alert-danger" style="margin-top: 1rem;">
+        ⚠️ Impossible de charger les détails du stock. L'identifiant est peut-être incorrect.
+      </div>
+    } -->
+
+    @if (item(); as s) {
       <div class="card" style="max-width:600px">
         <div class="detail-grid">
           <div class="detail-row"><span class="detail-label">Produit</span><span class="font-semibold">{{ getProduit(s.produit_id) }}</span></div>
@@ -36,29 +48,23 @@ import { Stock, CatalogueProduit, Site } from '../../core/models';
       </div>
     }
   `,
-    styles: [`
+  styles: [`
     .detail-grid { display: flex; flex-direction: column; }
     .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0; border-bottom: 1px solid var(--border-color); }
     .detail-row:last-child { border-bottom: none; }
     .detail-label { font-weight: 500; color: var(--text-secondary); }
   `],
 })
-export class StockDetailComponent implements OnInit {
-    private http = inject(HttpClient);
-    private route = inject(ActivatedRoute);
-    stock = signal<Stock | null>(null);
-    produits = signal<CatalogueProduit[]>([]);
-    sites = signal<Site[]>([]);
+export class StockDetailComponent {
+  item = input<Stock>()
+  produitsResource = httpResource<CatalogueProduit[]>(() => '/api/catalogue-produits');
+  sitesResource = httpResource<Site[]>(() => '/api/sites');
 
-    ngOnInit() {
-        const id = this.route.snapshot.paramMap.get('id')!;
-        this.http.get<Stock>(`/api/stocks/${id}`).subscribe((s) => this.stock.set(s));
-        this.http.get<CatalogueProduit[]>('/api/catalogue-produits').subscribe((p) => this.produits.set(p));
-        this.http.get<Site[]>('/api/sites').subscribe((s) => this.sites.set(s));
-    }
+  produits = computed(() => this.produitsResource.value() ?? []);
+  sites = computed(() => this.sitesResource.value() ?? []);
 
-    getProduit(id: string): string { return this.produits().find((p) => p.produit_id === id)?.designation ?? id; }
-    getSite(id: string): string { return this.sites().find((s) => s.site_id === id)?.nom ?? id; }
-    getStatutBadge(s: string): string { return s === 'NORMAL' ? 'badge-success' : s === 'ALERTE' ? 'badge-warning' : 'badge-danger'; }
-    formatDate(iso: string): string { return new Date(iso).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }); }
+  getProduit(id: string): string { return this.produits().find((p) => p.produit_id === id)?.designation ?? id; }
+  getSite(id: string): string { return this.sites().find((s) => s.site_id === id)?.nom ?? id; }
+  getStatutBadge(s: string): string { return s === 'NORMAL' ? 'badge-success' : s === 'ALERTE' ? 'badge-warning' : 'badge-danger'; }
+  formatDate(iso: string): string { return new Date(iso).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }); }
 }

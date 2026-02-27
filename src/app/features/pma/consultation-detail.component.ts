@@ -1,29 +1,29 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { computed, Component, inject, signal, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Consultation, Patient, Site } from '../../core/models';
 
 @Component({
-    selector: 'app-consultation-detail',
-    standalone: true,
-    imports: [RouterLink],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-consultation-detail',
+  standalone: true,
+  imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     <div class="page-header">
       <div>
         <h1>🩺 Détail consultation</h1>
         <p>Fiche complète de la consultation</p>
       </div>
       <div class="page-actions">
-        @if (consultation()) {
-          <a [routerLink]="['/pma', consultation()!.consultation_id, 'editer']" class="btn btn-primary">✏️ Modifier</a>
+        @if (item()) {
+          <a [routerLink]="['/pma', item()!.consultation_id, 'editer']" class="btn btn-primary">✏️ Modifier</a>
           <button class="btn btn-danger" (click)="onDelete()">🗑 Supprimer</button>
         }
         <a routerLink="/pma" class="btn btn-outline">← Retour</a>
       </div>
     </div>
 
-    @if (consultation(); as c) {
+    @if (item(); as c) {
       <div class="grid grid-2" style="gap:1.5rem">
         <div class="card">
           <h3 style="margin-bottom:1rem">📋 Informations</h3>
@@ -55,7 +55,7 @@ import { Consultation, Patient, Site } from '../../core/models';
       </div>
     }
   `,
-    styles: [`
+  styles: [`
     .detail-grid { display: flex; flex-direction: column; }
     .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0; border-bottom: 1px solid var(--border-color); }
     .detail-row:last-child { border-bottom: none; }
@@ -63,30 +63,30 @@ import { Consultation, Patient, Site } from '../../core/models';
   `],
 })
 export class ConsultationDetailComponent implements OnInit {
-    private http = inject(HttpClient);
-    private route = inject(ActivatedRoute);
-    private router = inject(Router);
-    consultation = signal<Consultation | null>(null);
-    patients = signal<Patient[]>([]);
-    sites = signal<Site[]>([]);
+  private http = inject(HttpClient);
+  item = input<any | null>(null);
+  private router = inject(Router);
+  // consultation = computed(() => this.item() as Consultation | null);
+  patients = signal<Patient[]>([]);
+  sites = signal<Site[]>([]);
 
-    ngOnInit() {
-        const id = this.route.snapshot.paramMap.get('id')!;
-        this.http.get<Consultation>(`/api/consultations/${id}`).subscribe((c) => this.consultation.set(c));
-        this.http.get<Patient[]>('/api/patients').subscribe((p) => this.patients.set(p));
-        this.http.get<Site[]>('/api/sites').subscribe((s) => this.sites.set(s));
-    }
+  ngOnInit() {
 
-    getPatientName(id: string): string { const p = this.patients().find((x) => x.patient_id === id); return p ? `${p.nom} ${p.prenom}` : id; }
-    getSiteName(id: string): string { return this.sites().find((x) => x.site_id === id)?.nom ?? id; }
-    getDecisionBadge(d: string): string {
-        if (d === 'RETOUR_POSTE') return 'badge-success';
-        if (d === 'EVACUATION_FOSA') return 'badge-danger';
-        return 'badge-warning';
+
+    this.http.get<Patient[]>('/api/patients').subscribe((p) => this.patients.set(p));
+    this.http.get<Site[]>('/api/sites').subscribe((s) => this.sites.set(s));
+  }
+
+  getPatientName(id: string): string { const p = this.patients().find((x) => x.patient_id === id); return p ? `${p.nom} ${p.prenom}` : id; }
+  getSiteName(id: string): string { return this.sites().find((x) => x.site_id === id)?.nom ?? id; }
+  getDecisionBadge(d: string): string {
+    if (d === 'RETOUR_POSTE') return 'badge-success';
+    if (d === 'EVACUATION_FOSA') return 'badge-danger';
+    return 'badge-warning';
+  }
+  onDelete() {
+    if (confirm('Supprimer cette consultation ?')) {
+      this.http.delete(`/api/consultations/${this.item()!.consultation_id}`).subscribe(() => this.router.navigate(['/pma']));
     }
-    onDelete() {
-        if (confirm('Supprimer cette consultation ?')) {
-            this.http.delete(`/api/consultations/${this.consultation()!.consultation_id}`).subscribe(() => this.router.navigate(['/pma']));
-        }
-    }
+  }
 }

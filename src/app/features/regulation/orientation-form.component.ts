@@ -1,6 +1,6 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Orientation, MoyenTransport, EtatPatient, StatutOrientation } from '../../core/models';
 
@@ -108,9 +108,10 @@ import { Orientation, MoyenTransport, EtatPatient, StatutOrientation } from '../
 export class OrientationFormComponent implements OnInit {
     private http = inject(HttpClient);
     private router = inject(Router);
-    private route = inject(ActivatedRoute);
+    item = input<any | null>(null);
 
     isEdit = signal(false);
+    private cdr = inject(ChangeDetectorRef);
     orientationId = '';
 
     nowDate = new Date();
@@ -126,16 +127,18 @@ export class OrientationFormComponent implements OnInit {
     };
 
     ngOnInit() {
-        const id = this.route.snapshot.paramMap.get('id');
+        const id = this.item() ? (this.item()?.id || this.item()?.config_id || this.item()?.patient_id || this.item()?.orientation_id) : null;
         if (id) {
             this.isEdit.set(true);
             this.orientationId = id;
-            this.http.get<Orientation>(`/api/orientations/${id}`).subscribe((o) => {
+            const o = this.item();
+      if (o) {
                 this.form = { ...o };
+                this.cdr.markForCheck();
                 if (o.heure_decision) this.form.heure_decision = o.heure_decision.slice(0, 16);
                 if (o.heure_depart) this.form.heure_depart = o.heure_depart.slice(0, 16);
                 if (o.heure_arrivee_fosa) this.form.heure_arrivee_fosa = o.heure_arrivee_fosa.slice(0, 16);
-            });
+            }
         }
     }
 

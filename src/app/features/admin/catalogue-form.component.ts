@@ -1,15 +1,15 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CatalogueProduit } from '../../core/models';
 
 @Component({
-    selector: 'app-catalogue-form',
-    standalone: true,
-    imports: [FormsModule],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-catalogue-form',
+  standalone: true,
+  imports: [FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     <div class="page-header">
       <div>
         <h1>{{ isEdit() ? '✏️ Modifier' : '➕ Nouveau' }} produit</h1>
@@ -91,46 +91,51 @@ import { CatalogueProduit } from '../../core/models';
   `,
 })
 export class CatalogueFormComponent implements OnInit {
-    private http = inject(HttpClient);
-    private router = inject(Router);
-    private route = inject(ActivatedRoute);
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  item = input<any | null>(null);
+  private cdr = inject(ChangeDetectorRef);
 
-    isEdit = signal(false);
-    produitId = '';
+  isEdit = signal(false);
+  produitId = '';
 
-    form: Partial<CatalogueProduit> = {
-        code_produit: '',
-        designation: '',
-        categorie: 'MEDICAMENT',
-        unite_base: '',
-        necessite_froid: false,
-        actif: true
-    };
+  form: Partial<CatalogueProduit> = {
+    code_produit: '',
+    designation: '',
+    categorie: 'MEDICAMENT',
+    unite_base: '',
+    necessite_froid: false,
+    actif: true
+  };
 
-    ngOnInit() {
-        const id = this.route.snapshot.paramMap.get('id');
-        if (id) {
-            this.isEdit.set(true);
-            this.produitId = id;
-            this.http.get<CatalogueProduit>(`/api/catalogue/${id}`).subscribe(p => this.form = { ...p });
-        }
+  ngOnInit() {
+    const id = this.item() ? (this.item()?.id || this.item()?.config_id || this.item()?.patient_id || this.item()?.orientation_id) : null;
+    if (id) {
+      this.isEdit.set(true);
+      this.produitId = id;
+      const p = this.item();
+      if (p) {
+        this.form = { ...p };
+        this.cdr.markForCheck();
+      }
     }
+  }
 
-    onSubmit() {
-        if (!this.form.code_produit || !this.form.designation || !this.form.categorie || !this.form.unite_base) return;
+  onSubmit() {
+    if (!this.form.code_produit || !this.form.designation || !this.form.categorie || !this.form.unite_base) return;
 
-        if (this.isEdit()) {
-            this.http.put(`/api/catalogue/${this.produitId}`, this.form).subscribe(() => {
-                this.router.navigate(['/admin/catalogue']);
-            });
-        } else {
-            this.http.post('/api/catalogue', this.form).subscribe(() => {
-                this.router.navigate(['/admin/catalogue']);
-            });
-        }
-    }
-
-    onCancel() {
+    if (this.isEdit()) {
+      this.http.put(`/api/catalogue/${this.produitId}`, this.form).subscribe(() => {
         this.router.navigate(['/admin/catalogue']);
+      });
+    } else {
+      this.http.post('/api/catalogue', this.form).subscribe(() => {
+        this.router.navigate(['/admin/catalogue']);
+      });
     }
+  }
+
+  onCancel() {
+    this.router.navigate(['/admin/catalogue']);
+  }
 }

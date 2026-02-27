@@ -120,6 +120,18 @@ export class AdminHubComponent implements OnInit {
       icon: '📦', label: 'Catalogue Produits', description: 'Médicaments & Consommables',
       route: '/admin/catalogue', count: 0, color: '#10b981', bgColor: 'rgba(16,185,129,0.1)',
     },
+    {
+      icon: '⚠️', label: 'Règles d\'alerte', description: 'Configuration des seuils et notifications',
+      route: '/admin/alertes-config', count: 0, color: '#ef4444', bgColor: 'rgba(239,68,68,0.1)',
+    },
+    {
+      icon: '🛡️', label: 'Rôles', description: 'Niveaux d\'accès et permissions',
+      route: '/admin/roles', count: 0, color: '#f97316', bgColor: 'rgba(249,115,22,0.1)',
+    },
+    {
+      icon: '📋', label: 'Journal d\'Audit', description: 'Traçabilité des actions utilisateurs',
+      route: '/admin/audit', count: 0, color: '#64748b', bgColor: 'rgba(100,116,139,0.1)',
+    },
   ]);
 
   ngOnInit() {
@@ -138,8 +150,17 @@ export class AdminHubComponent implements OnInit {
     this.http.get<any[]>('/api/lits').subscribe((l) => {
       this.updateCount('lits', l.length);
     });
-    this.http.get<any[]>('/api/catalogue-produits').subscribe((p) => {
-      this.updateCount('catalogue', p.length);
+    this.http.get<any[]>('/api/configurations-alerte').subscribe((c) => {
+      this.updateCount('alertes-config', c.length);
+    });
+    this.http.get<any[]>('/api/catalogue-produits').subscribe((c) => {
+      this.updateCount('catalogue', c.length);
+    });
+    this.http.get<any[]>('/api/roles').subscribe((r) => {
+      this.updateCount('roles', r.length);
+    });
+    this.http.get<any[]>('/api/audit-logs').subscribe((a) => {
+      this.updateCount('audit', a.length);
     });
   }
 

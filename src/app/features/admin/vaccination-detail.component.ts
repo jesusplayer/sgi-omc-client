@@ -1,6 +1,6 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { computed, Component, inject, signal, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { Vaccination } from '../../core/models';
 
 @Component({
@@ -63,13 +63,13 @@ import { Vaccination } from '../../core/models';
 })
 export class VaccinationDetailComponent implements OnInit {
     private http = inject(HttpClient);
-    private route = inject(ActivatedRoute);
-    vaccination = signal<Vaccination | null>(null);
+    item = input<any | null>(null);
+    vaccination = computed(() => this.item() as Vaccination | null);
 
     ngOnInit() {
-        const id = this.route.snapshot.paramMap.get('id');
+        const id = this.item() ? (this.item()?.id || this.item()?.config_id || this.item()?.patient_id || this.item()?.orientation_id) : null;
         if (id) {
-            this.http.get<Vaccination>(`/api/vaccinations/${id}`).subscribe((v) => this.vaccination.set(v));
+            
         }
     }
 

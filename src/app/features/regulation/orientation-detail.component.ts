@@ -1,6 +1,6 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { computed, Component, inject, signal, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Orientation } from '../../core/models';
 
 @Component({
@@ -127,14 +127,14 @@ import { Orientation } from '../../core/models';
 })
 export class OrientationDetailComponent implements OnInit {
     private http = inject(HttpClient);
-    private route = inject(ActivatedRoute);
+    item = input<any | null>(null);
 
-    orientation = signal<Orientation | null>(null);
+    orientation = computed(() => this.item() as Orientation | null);
 
     ngOnInit() {
-        const id = this.route.snapshot.paramMap.get('id');
+        const id = this.item() ? (this.item()?.id || this.item()?.config_id || this.item()?.patient_id || this.item()?.orientation_id) : null;
         if (id) {
-            this.http.get<Orientation>(`/api/orientations/${id}`).subscribe((o) => this.orientation.set(o));
+            
         }
     }
 

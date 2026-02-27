@@ -6,11 +6,11 @@ import { AuthService } from '../../core/services/auth.service';
 import { Patient } from '../../core/models';
 
 @Component({
-    selector: 'app-criblage-form',
-    standalone: true,
-    imports: [FormsModule],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-criblage-form',
+  standalone: true,
+  imports: [FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     <div class="page-header">
       <div>
         <h1>🩺 Criblage médical</h1>
@@ -18,13 +18,13 @@ import { Patient } from '../../core/models';
       </div>
     </div>
 
-    @if (patient()) {
+    @if (!!item()) {
       <div class="card" style="margin-bottom:1rem">
         <div class="flex items-center gap-4">
           <div class="stat-icon" style="background:rgba(99,102,241,0.1);color:#6366f1;font-size:1.5rem">👤</div>
           <div>
-            <div class="font-semibold">{{ patient()!.nom }} {{ patient()!.prenom }}</div>
-            <div class="text-sm text-muted">{{ patient()!.accreditation_id }} · {{ patient()!.nationalite }} · {{ patient()!.type_personne }}</div>
+            <div class="font-semibold">{{ item()!.nom }} {{ item()!.prenom }}</div>
+            <div class="text-sm text-muted">{{ item()!.accreditation_id }} · {{ item()!.nationalite }} · {{ item()!.type_personne }}</div>
           </div>
         </div>
       </div>
@@ -97,44 +97,44 @@ import { Patient } from '../../core/models';
       </div>
     </form>
   `,
-    styles: [`
+  styles: [`
     .checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer;
       input { width: 16px; height: 16px; accent-color: var(--accent); } }
   `],
 })
 export class CriblageFormComponent implements OnInit {
-    id = input<string>();
-    private http = inject(HttpClient);
-    private auth = inject(AuthService);
-    router = inject(Router);
-    patient = signal<Patient | null>(null);
-    saving = signal(false);
+  item = input<any | null>(null);
+  private http = inject(HttpClient);
+  private auth = inject(AuthService);
+  router = inject(Router);
+  // patient = signal<Patient | null>(null);
+  saving = signal(false);
 
-    form: any = {
-        numero_vol: '', compagnie_aerienne: '', aeroport_origine: '', numero_siege: '',
-        date_arrivee: new Date().toISOString().slice(0, 16),
-        temperature_criblage: 36.5, symptomes_declares: false, detail_symptomes: '',
-        decision_frontiere: 'AUTORISATION', motif_decision: '',
+  form: any = {
+    numero_vol: '', compagnie_aerienne: '', aeroport_origine: '', numero_siege: '',
+    date_arrivee: new Date().toISOString().slice(0, 16),
+    temperature_criblage: 36.5, symptomes_declares: false, detail_symptomes: '',
+    decision_frontiere: 'AUTORISATION', motif_decision: '',
+  };
+
+  ngOnInit() {
+    // const patientId = this.item()?.patient_id ?? null;
+    // if (patientId) {
+    //   this.http.get<Patient>(`/api/patients/${patientId}`).subscribe((p) => this.patient.set(p));
+    // }
+  }
+
+  onSubmit() {
+    this.saving.set(true);
+    const body = {
+      ...this.form,
+      patient_id: this.item()?.patient_id || '',
+      psf_agent_id: this.auth.user()?.user_id,
+      site_psf_id: this.auth.site()?.site_id,
     };
-
-    ngOnInit() {
-        const patientId = this.id();
-        if (patientId) {
-            this.http.get<Patient>(`/api/patients/${patientId}`).subscribe((p) => this.patient.set(p));
-        }
-    }
-
-    onSubmit() {
-        this.saving.set(true);
-        const body = {
-            ...this.form,
-            patient_id: this.id(),
-            psf_agent_id: this.auth.user()?.user_id,
-            site_psf_id: this.auth.site()?.site_id,
-        };
-        this.http.post('/api/tracing-vol', body).subscribe({
-            next: () => this.router.navigate(['/psf']),
-            error: () => this.saving.set(false),
-        });
-    }
+    this.http.post('/api/tracing-vol', body).subscribe({
+      next: () => this.router.navigate(['/psf']),
+      error: () => this.saving.set(false)
+    });
+  }
 }

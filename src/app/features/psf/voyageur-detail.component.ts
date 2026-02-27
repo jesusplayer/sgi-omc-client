@@ -1,29 +1,29 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { computed, Component, inject, signal, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Patient, TracingVol, Vaccination } from '../../core/models';
 
 @Component({
-    selector: 'app-voyageur-detail',
-    standalone: true,
-    imports: [RouterLink],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-voyageur-detail',
+  standalone: true,
+  imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     <div class="page-header">
       <div>
         <h1>👤 Détail voyageur</h1>
         <p>Fiche complète du voyageur</p>
       </div>
       <div class="page-actions">
-        @if (patient()) {
-          <a [routerLink]="['/psf', patient()!.patient_id, 'editer']" class="btn btn-primary">✏️ Modifier</a>
+        @if (item()) {
+          <a [routerLink]="['/psf', item()!.patient_id, 'editer']" class="btn btn-primary">✏️ Modifier</a>
           <button class="btn btn-danger" (click)="onDelete()">🗑 Supprimer</button>
         }
         <a routerLink="/psf" class="btn btn-outline">← Retour</a>
       </div>
     </div>
 
-    @if (patient(); as p) {
+    @if (item(); as p) {
       <div class="grid grid-2" style="gap:1.5rem">
         <div class="card">
           <h3 style="margin-bottom:1rem">🪪 Informations personnelles</h3>
@@ -79,7 +79,7 @@ import { Patient, TracingVol, Vaccination } from '../../core/models';
       }
     }
   `,
-    styles: [`
+  styles: [`
     .detail-grid { display: flex; flex-direction: column; gap: 0; }
     .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0; border-bottom: 1px solid var(--border-color); }
     .detail-row:last-child { border-bottom: none; }
@@ -87,41 +87,41 @@ import { Patient, TracingVol, Vaccination } from '../../core/models';
   `],
 })
 export class VoyageurDetailComponent implements OnInit {
-    private http = inject(HttpClient);
-    private route = inject(ActivatedRoute);
-    private router = inject(Router);
+  private http = inject(HttpClient);
+  private router = inject(Router);
 
-    patient = signal<Patient | null>(null);
-    tracing = signal<TracingVol | null>(null);
-    vaccinations = signal<Vaccination[]>([]);
+  item = input<Patient | null>(null);
+  tracing = signal<TracingVol | null>(null);
+  vaccinations = signal<Vaccination[]>([]);
 
-    ngOnInit() {
-        const id = this.route.snapshot.paramMap.get('id')!;
-        this.http.get<Patient>(`/api/patients/${id}`).subscribe((p) => this.patient.set(p));
-        this.http.get<TracingVol[]>('/api/tracing-vol').subscribe((all) => {
-            const t = all.find((x) => x.patient_id === id);
-            if (t) this.tracing.set(t);
-        });
-        this.http.get<Vaccination[]>('/api/vaccinations').subscribe((v) =>
-            this.vaccinations.set(v.filter((x) => x.actif))
-        );
+  ngOnInit() {
+
+
+    this.http.get<TracingVol[]>('/api/tracing-vol').subscribe((all) => {
+      const id = this.item()?.patient_id;
+      const t = all.find((x) => x.patient_id === id);
+      if (t) this.tracing.set(t);
+    });
+    this.http.get<Vaccination[]>('/api/vaccinations').subscribe((v) =>
+      this.vaccinations.set(v.filter((x) => x.actif))
+    );
+  }
+
+  getVaccinStatus(libelle: string): boolean {
+    const sv = this.item()?.statut_vaccinal;
+    if (!sv) return false;
+    const key = libelle.toLowerCase().replace(/[\s-]+/g, '_');
+    for (const [k, v] of Object.entries(sv)) {
+      if (k.toLowerCase().replace(/[\s-]+/g, '_').includes(key) || key.includes(k.toLowerCase().replace(/[\s-]+/g, '_'))) {
+        return !!v;
+      }
     }
+    return false;
+  }
 
-    getVaccinStatus(libelle: string): boolean {
-        const sv = this.patient()?.statut_vaccinal;
-        if (!sv) return false;
-        const key = libelle.toLowerCase().replace(/[\s-]+/g, '_');
-        for (const [k, v] of Object.entries(sv)) {
-            if (k.toLowerCase().replace(/[\s-]+/g, '_').includes(key) || key.includes(k.toLowerCase().replace(/[\s-]+/g, '_'))) {
-                return !!v;
-            }
-        }
-        return false;
+  onDelete() {
+    if (confirm('Supprimer ce voyageur ?')) {
+      this.http.delete(`/api/patients/${this.item()!.patient_id}`).subscribe(() => this.router.navigate(['/psf']));
     }
-
-    onDelete() {
-        if (confirm('Supprimer ce voyageur ?')) {
-            this.http.delete(`/api/patients/${this.patient()!.patient_id}`).subscribe(() => this.router.navigate(['/psf']));
-        }
-    }
+  }
 }

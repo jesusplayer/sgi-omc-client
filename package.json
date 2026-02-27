@@ -38,7 +38,7 @@
     "common-to-standalone": "ng generate @angular/core:common-to-standalone",
     "browserlist:g": "ng generate config browserslist --force",
     "show:stats": "esbuild-visualizer --metadata dist/production/stats.json",
-    "build": "npm run write:env -s && ng build --configuration=production && npm run del:unused:fonts && npm run mfl:copyconfig && npm run ngsw:generate",
+    "build": "npm run write:env -s && ng build",
     "build:fb": "npm run build && npm run copy:board && npm run ngsw:generate:fb",
     "build:stat": "npm run write:env -s && ng build --stats-json && npm run show:stats",
     "build:dev": "npm run write:env -s && ng build --base-href /fosa/ --configuration=dev",

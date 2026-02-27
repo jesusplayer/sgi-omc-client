@@ -1,6 +1,6 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { computed, Component, inject, signal, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AppelRegulation } from '../../core/models';
 
 @Component({
@@ -52,13 +52,13 @@ import { AppelRegulation } from '../../core/models';
 })
 export class AppelDetailComponent implements OnInit {
     private http = inject(HttpClient);
-    private route = inject(ActivatedRoute);
+    item = input<any | null>(null);
     private router = inject(Router);
-    appel = signal<AppelRegulation | null>(null);
+    appel = computed(() => this.item() as AppelRegulation | null);
 
     ngOnInit() {
-        const id = this.route.snapshot.paramMap.get('id')!;
-        this.http.get<AppelRegulation>(`/api/appels-regulation/${id}`).subscribe((a) => this.appel.set(a));
+        
+        
     }
 
     formatDate(iso: string): string {

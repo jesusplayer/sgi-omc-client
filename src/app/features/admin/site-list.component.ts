@@ -1,7 +1,8 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { Site } from '../../core/models';
+import { SiteService } from '../../core/services/site.service';
 
 @Component({
   selector: 'app-site-list',
@@ -69,30 +70,26 @@ import { Site } from '../../core/models';
     </div>
   `,
 })
-export class SiteListComponent implements OnInit {
-  private http = inject(HttpClient);
-  sites = signal<Site[]>([]);
-  filtered = signal<Site[]>([]);
+export class SiteListComponent {
+  private siteService = inject(SiteService);
+
+  sitesResource = this.siteService.getAll();
   searchTerm = signal('');
 
-  ngOnInit() {
-    this.loadData();
-  }
-
-  loadData() {
-    this.http.get<Site[]>('/api/sites').subscribe((res) => {
-      this.sites.set(res); this.filtered.set(res);
-    });
-  }
-
-  onSearch(event: Event) {
-    this.searchTerm.set((event.target as HTMLInputElement).value);
+  filtered = computed(() => {
     const term = this.searchTerm().toLowerCase();
-    if (!term) { this.filtered.set(this.sites()); return; }
-    this.filtered.set(this.sites().filter((s) =>
+    const sites = this.sitesResource.value();
+    if (!sites) return [];
+    if (!term) return sites;
+    return sites.filter((s) =>
       s.code_site.toLowerCase().includes(term) ||
       s.nom.toLowerCase().includes(term) ||
       s.type_site.toLowerCase().includes(term)
-    ));
+    );
+  });
+
+  onSearch(event: Event) {
+    this.searchTerm.set((event.target as HTMLInputElement).value);
   }
 }
+

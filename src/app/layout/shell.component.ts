@@ -313,6 +313,9 @@ export class ShellComponent {
     { label: 'Catégories Lits', icon: '🗂️', route: '/admin/categories-lits' },
     { label: 'Lits FOSA', icon: '🛏️', route: '/admin/lits' },
     { label: 'Catalogue', icon: '📦', route: '/admin/catalogue' },
+    { label: 'Règles d\'alerte', icon: '⚠️', route: '/admin/alertes-config' },
+    { label: 'Rôles & Permissions', icon: '🛡️', route: '/admin/roles' },
+    { label: 'Journal d\'Audit', icon: '📋', route: '/admin/audit' },
   ];
 
   private allNav: NavItem[] = [

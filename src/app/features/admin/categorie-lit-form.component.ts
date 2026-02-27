@@ -1,15 +1,15 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CategorieLit, CodeCategorieLit } from '../../core/models';
 
 @Component({
-    selector: 'app-categorie-lit-form',
-    standalone: true,
-    imports: [FormsModule],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-categorie-lit-form',
+  standalone: true,
+  imports: [FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     <div class="page-header">
       <div>
         <h1>{{ isEdit() ? '✏️ Modifier' : '➕ Nouvelle' }} catégorie de lit</h1>
@@ -67,43 +67,48 @@ import { CategorieLit, CodeCategorieLit } from '../../core/models';
   `,
 })
 export class CategorieLitFormComponent implements OnInit {
-    private http = inject(HttpClient);
-    private router = inject(Router);
-    private route = inject(ActivatedRoute);
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  item = input<any | null>(null);
+  private cdr = inject(ChangeDetectorRef);
 
-    isEdit = signal(false);
-    categorieId = '';
+  isEdit = signal(false);
+  categorieId = '';
 
-    form: Partial<CategorieLit> = {
-        code: 'STANDARD',
-        libelle: '',
-        couleur_dashboard: '#3b82f6',
-        actif: true
-    };
+  form: Partial<CategorieLit> = {
+    code: 'STANDARD',
+    libelle: '',
+    couleur_dashboard: '#3b82f6',
+    actif: true
+  };
 
-    ngOnInit() {
-        const id = this.route.snapshot.paramMap.get('id');
-        if (id) {
-            this.isEdit.set(true);
-            this.categorieId = id;
-            this.http.get<CategorieLit>(`/api/categories-lits/${id}`).subscribe((c) => this.form = { ...c });
-        }
+  ngOnInit() {
+    const id = this.item() ? (this.item()?.id || this.item()?.config_id || this.item()?.patient_id || this.item()?.orientation_id) : null;
+    if (id) {
+      this.isEdit.set(true);
+      this.categorieId = id;
+      const c = this.item();
+      if (c) {
+        this.form = { ...c };
+        this.cdr.markForCheck();
+      }
     }
+  }
 
-    onSubmit() {
-        if (!this.form.code || !this.form.libelle) return;
-        if (this.isEdit()) {
-            this.http.put(`/api/categories-lits/${this.categorieId}`, this.form).subscribe(() => {
-                this.router.navigate(['/admin/categories-lits']);
-            });
-        } else {
-            this.http.post('/api/categories-lits', this.form).subscribe(() => {
-                this.router.navigate(['/admin/categories-lits']);
-            });
-        }
-    }
-
-    onCancel() {
+  onSubmit() {
+    if (!this.form.code || !this.form.libelle) return;
+    if (this.isEdit()) {
+      this.http.put(`/api/categories-lits/${this.categorieId}`, this.form).subscribe(() => {
         this.router.navigate(['/admin/categories-lits']);
+      });
+    } else {
+      this.http.post('/api/categories-lits', this.form).subscribe(() => {
+        this.router.navigate(['/admin/categories-lits']);
+      });
     }
+  }
+
+  onCancel() {
+    this.router.navigate(['/admin/categories-lits']);
+  }
 }

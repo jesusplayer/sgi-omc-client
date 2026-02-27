@@ -1,4 +1,4 @@
-import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
+import { HttpInterceptorFn, HttpResponse, HttpErrorResponse } from '@angular/common/http';
 import { from } from 'rxjs';
 import { db } from '../db/sgi-database';
 import { seedDatabase } from '../db/seed-data';
@@ -24,8 +24,11 @@ function created(body: unknown) {
     return new HttpResponse({ status: 201, body });
 }
 
-function notFound(msg = 'Not Found') {
-    return new HttpResponse({ status: 404, body: { error: msg } });
+function routeNotFound(msg = 'Not Found'): Promise<any> {
+    return Promise.reject(new HttpErrorResponse({ status: 404, error: { error: msg }, statusText: msg }));
+}
+function notFound(msg = 'Not Found'): Promise<any> {
+    return Promise.reject(new HttpErrorResponse({ status: 404, error: { error: msg }, statusText: msg }));
 }
 
 export const fakeBackendInterceptor: HttpInterceptorFn = (req, next) => {
@@ -207,7 +210,7 @@ export const fakeBackendInterceptor: HttpInterceptorFn = (req, next) => {
         if (url === '/api/dashboard/stats' && method === 'GET')
             return handleDashboardStats();
 
-        return notFound(`Route not found: ${method} ${url}`);
+        return routeNotFound(`Route not found: ${method} ${url}`);
     }
 
     function extractId(u: string): string {

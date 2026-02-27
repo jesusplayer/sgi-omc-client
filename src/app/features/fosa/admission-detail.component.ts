@@ -1,29 +1,29 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { computed, Component, inject, signal, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { PriseEnCharge, Patient } from '../../core/models';
 
 @Component({
-    selector: 'app-admission-detail',
-    standalone: true,
-    imports: [RouterLink],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-admission-detail',
+  standalone: true,
+  imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     <div class="page-header">
       <div>
         <h1>🏥 Détail admission</h1>
         <p>Prise en charge FOSA</p>
       </div>
       <div class="page-actions">
-        @if (pec()) {
-          <a [routerLink]="['/fosa', pec()!.pec_id, 'editer']" class="btn btn-primary">✏️ Modifier</a>
+        @if (item()) {
+          <a [routerLink]="['/fosa', item()!.pec_id, 'editer']" class="btn btn-primary">✏️ Modifier</a>
           <button class="btn btn-danger" (click)="onDelete()">🗑 Supprimer</button>
         }
         <a routerLink="/fosa" class="btn btn-outline">← Retour</a>
       </div>
     </div>
 
-    @if (pec(); as p) {
+    @if (item(); as p) {
       <div class="card" style="max-width:700px">
         <div class="detail-grid">
           <div class="detail-row"><span class="detail-label">Patient</span><span class="font-semibold">{{ getPatientName(p.patient_id) }}</span></div>
@@ -45,7 +45,7 @@ import { PriseEnCharge, Patient } from '../../core/models';
       </div>
     }
   `,
-    styles: [`
+  styles: [`
     .detail-grid { display: flex; flex-direction: column; }
     .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0; border-bottom: 1px solid var(--border-color); }
     .detail-row:last-child { border-bottom: none; }
@@ -53,24 +53,23 @@ import { PriseEnCharge, Patient } from '../../core/models';
   `],
 })
 export class AdmissionDetailComponent implements OnInit {
-    private http = inject(HttpClient);
-    private route = inject(ActivatedRoute);
-    private router = inject(Router);
-    pec = signal<PriseEnCharge | null>(null);
-    patients = signal<Patient[]>([]);
+  private http = inject(HttpClient);
+  item = input<PriseEnCharge | null>(null);
+  private router = inject(Router);
+  patients = signal<Patient[]>([]);
 
-    ngOnInit() {
-        const id = this.route.snapshot.paramMap.get('id')!;
-        this.http.get<PriseEnCharge>(`/api/prises-en-charge/${id}`).subscribe((p) => this.pec.set(p));
-        this.http.get<Patient[]>('/api/patients').subscribe((p) => this.patients.set(p));
+  ngOnInit() {
+
+
+    this.http.get<Patient[]>('/api/patients').subscribe((p) => this.patients.set(p));
+  }
+
+  getPatientName(id: string): string { const p = this.patients().find((x) => x.patient_id === id); return p ? `${p.nom} ${p.prenom}` : id; }
+  formatDate(iso: string): string { return new Date(iso).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }); }
+
+  onDelete() {
+    if (confirm('Supprimer cette admission ?')) {
+      this.http.delete(`/api/prises-en-charge/${this.item()!.pec_id}`).subscribe(() => this.router.navigate(['/fosa']));
     }
-
-    getPatientName(id: string): string { const p = this.patients().find((x) => x.patient_id === id); return p ? `${p.nom} ${p.prenom}` : id; }
-    formatDate(iso: string): string { return new Date(iso).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }); }
-
-    onDelete() {
-        if (confirm('Supprimer cette admission ?')) {
-            this.http.delete(`/api/prises-en-charge/${this.pec()!.pec_id}`).subscribe(() => this.router.navigate(['/fosa']));
-        }
-    }
+  }
 }

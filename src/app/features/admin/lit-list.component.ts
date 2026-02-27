@@ -54,7 +54,7 @@ import { Lit, Site, CategorieLit } from '../../core/models';
             @for (lit of filteredLits(); track lit.lit_id) {
               <tr>
                 <td>{{ getSiteName(lit.site_id) }}</td>
-                <td class="font-medium">{{ lit.numero_lit }}</td>
+                <td class="font-medium"><a [routerLink]="['/admin/lits', lit.lit_id, 'editer']" class="cell-link">{{ lit.numero_lit }}</a></td>
                 <td>{{ getCategoryName(lit.categorie_id) }}</td>
                 <td>
                   <span class="badge" [class]="getStatusBadge(lit.statut)">{{ lit.statut }}</span>

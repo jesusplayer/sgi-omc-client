@@ -1,6 +1,6 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { computed, Component, inject, signal, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Alerte } from '../../core/models';
 
 @Component({
@@ -55,13 +55,13 @@ import { Alerte } from '../../core/models';
 })
 export class AlerteDetailComponent implements OnInit {
     private http = inject(HttpClient);
-    private route = inject(ActivatedRoute);
+    item = input<any | null>(null);
     private router = inject(Router);
-    alerte = signal<Alerte | null>(null);
+    alerte = computed(() => this.item() as Alerte | null);
 
     ngOnInit() {
-        const id = this.route.snapshot.paramMap.get('id')!;
-        this.http.get<Alerte>(`/api/alertes/${id}`).subscribe((a) => this.alerte.set(a));
+        
+        
     }
 
     formatDate(iso: string): string { return new Date(iso).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }); }
@@ -69,7 +69,7 @@ export class AlerteDetailComponent implements OnInit {
     onResolve() {
         const a = this.alerte()!;
         const updated = { ...a, statut: 'RESOLUE' as const, datetime_resolution: new Date().toISOString(), commentaire_resolution: 'Résolu manuellement' };
-        this.http.put(`/api/alertes/${a.alerte_id}`, updated).subscribe(() => this.alerte.set(updated));
+        this.http.put(`/api/alertes/${a.alerte_id}`, updated).subscribe(() => window.location.reload());
     }
 
     onDelete() {

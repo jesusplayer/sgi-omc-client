@@ -21,6 +21,7 @@ import { Stock, CatalogueProduit, Site } from '../../core/models';
             <option [value]="s.site_id">{{ s.nom }}</option>
           }
         </select>
+        <a routerLink="/stocks/inventaire" class="btn btn-outline" style="border-style: dashed" title="Inventaire Physique">📝 Ajustement</a>
         <a routerLink="/stocks/mouvements" class="btn btn-outline">🔄 Mouvements</a>
       </div>
     </div>

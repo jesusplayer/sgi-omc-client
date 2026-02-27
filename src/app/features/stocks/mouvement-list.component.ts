@@ -55,7 +55,7 @@ import { ConsommationStock, CatalogueProduit, Site } from '../../core/models';
             @for (m of filteredMouvements(); track m.conso_id) {
               <tr>
                 <td class="text-sm text-muted">{{ formatDate(m.datetime_mouvement) }}</td>
-                <td class="font-medium">{{ getProduitName(m.stock_id) }}</td>
+                <td class="font-medium"><a [routerLink]="['/stocks', m.stock_id]" class="cell-link">{{ getProduitName(m.stock_id) }}</a></td>
                 <td><span class="badge badge-neutral">{{ m.type_mouvement }}</span></td>
                 <td>
                   <span class="badge" [class]="m.sens === 'ENTREE' ? 'badge-success' : 'badge-danger'">

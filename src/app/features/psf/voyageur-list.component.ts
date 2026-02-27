@@ -73,7 +73,7 @@ import { exportToCsv, printPage } from '../../shared/export.utils';
                   <div class="flex gap-1">
                     <a [routerLink]="['/psf', row.patient.patient_id, 'editer']" class="btn btn-sm btn-outline" title="Éditer">✏️</a>
                     @if (!row.tracing) {
-                      <a [routerLink]="['/psf', row.patient.patient_id, 'criblage']" class="btn btn-sm btn-primary" title="Cribler">🩺</a>
+                      <a [routerLink]="['/psf', row.patient.patient_id, 'criblage']" class="btn btn-sm btn-secondary" title="Cribler">🩺</a>
                     }
                   </div>
                 </td>

@@ -1,15 +1,15 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Lit, Site, CategorieLit } from '../../core/models';
 
 @Component({
-    selector: 'app-lit-form',
-    standalone: true,
-    imports: [FormsModule],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-lit-form',
+  standalone: true,
+  imports: [FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     <div class="page-header">
       <div>
         <h1>{{ isEdit() ? '✏️ Modifier' : '➕ Nouveau' }} lit</h1>
@@ -66,55 +66,60 @@ import { Lit, Site, CategorieLit } from '../../core/models';
   `,
 })
 export class LitFormComponent implements OnInit {
-    private http = inject(HttpClient);
-    private router = inject(Router);
-    private route = inject(ActivatedRoute);
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  item = input<any | null>(null);
+  private cdr = inject(ChangeDetectorRef);
 
-    isEdit = signal(false);
-    litId = '';
+  isEdit = signal(false);
+  litId = '';
 
-    sites = signal<Site[]>([]);
-    categories = signal<CategorieLit[]>([]);
+  sites = signal<Site[]>([]);
+  categories = signal<CategorieLit[]>([]);
 
-    form: Partial<Lit> = {
-        site_id: '',
-        categorie_id: '',
-        numero_lit: '',
-        statut: 'LIBRE'
-    };
+  form: Partial<Lit> = {
+    site_id: '',
+    categorie_id: '',
+    numero_lit: '',
+    statut: 'LIBRE'
+  };
 
-    ngOnInit() {
-        this.http.get<Site[]>('/api/sites').subscribe(res => {
-            this.sites.set(res.filter(s => ['FOSA', 'PMA_HOTEL', 'PMA_PALAIS', 'PMA_HV'].includes(s.type_site)));
-        });
-        this.http.get<CategorieLit[]>('/api/categories-lits').subscribe(c => this.categories.set(c));
+  ngOnInit() {
+    this.http.get<Site[]>('/api/sites').subscribe(res => {
+      this.sites.set(res.filter(s => ['FOSA', 'PMA_HOTEL', 'PMA_PALAIS', 'PMA_HV'].includes(s.type_site)));
+    });
+    this.http.get<CategorieLit[]>('/api/categories-lits').subscribe(c => this.categories.set(c));
 
-        const id = this.route.snapshot.paramMap.get('id');
-        if (id) {
-            this.isEdit.set(true);
-            this.litId = id;
-            this.http.get<Lit>(`/api/lits/${id}`).subscribe(l => this.form = { ...l });
-        }
+    const id = this.item() ? (this.item()?.id || this.item()?.config_id || this.item()?.patient_id || this.item()?.orientation_id) : null;
+    if (id) {
+      this.isEdit.set(true);
+      this.litId = id;
+      const l = this.item();
+      if (l) {
+        this.form = { ...l };
+        this.cdr.markForCheck();
+      }
     }
+  }
 
-    onSubmit() {
-        if (!this.form.site_id || !this.form.categorie_id || !this.form.numero_lit) return;
+  onSubmit() {
+    if (!this.form.site_id || !this.form.categorie_id || !this.form.numero_lit) return;
 
-        // Le updated_at est généré automatiquement côté backend (ou ici)
-        this.form.updated_at = new Date().toISOString();
+    // Le updated_at est généré automatiquement côté backend (ou ici)
+    this.form.updated_at = new Date().toISOString();
 
-        if (this.isEdit()) {
-            this.http.put(`/api/lits/${this.litId}`, this.form).subscribe(() => {
-                this.router.navigate(['/admin/lits']);
-            });
-        } else {
-            this.http.post('/api/lits', this.form).subscribe(() => {
-                this.router.navigate(['/admin/lits']);
-            });
-        }
-    }
-
-    onCancel() {
+    if (this.isEdit()) {
+      this.http.put(`/api/lits/${this.litId}`, this.form).subscribe(() => {
         this.router.navigate(['/admin/lits']);
+      });
+    } else {
+      this.http.post('/api/lits', this.form).subscribe(() => {
+        this.router.navigate(['/admin/lits']);
+      });
     }
+  }
+
+  onCancel() {
+    this.router.navigate(['/admin/lits']);
+  }
 }

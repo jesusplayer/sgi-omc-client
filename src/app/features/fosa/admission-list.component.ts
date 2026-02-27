@@ -33,7 +33,7 @@ import { PriseEnCharge, Patient } from '../../core/models';
             @for (p of filtered(); track p.pec_id) {
               <tr>
                 <td class="text-sm">{{ formatDate(p.admission_datetime) }}</td>
-                <td class="font-medium">{{ getPatientName(p.patient_id) }}</td>
+                <td class="font-medium"><a [routerLink]="['/fosa', p.pec_id]" class="cell-link">{{ getPatientName(p.patient_id) }}</a></td>
                 <td><span class="badge" [class]="getEtatBadge(p.etat_entree)">{{ p.etat_entree }}</span></td>
                 <td class="truncate" style="max-width:200px">{{ p.diagnostic_entree ?? '—' }}</td>
                 <td>{{ p.lit_id ?? '—' }}</td>

@@ -1,6 +1,6 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { Vaccination } from '../../core/models';
@@ -113,10 +113,11 @@ import { Vaccination } from '../../core/models';
 export class VoyageurFormComponent implements OnInit {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
-  private route = inject(ActivatedRoute);
+  item = input<any | null>(null);
   router = inject(Router);
 
   isEdit = signal(false);
+  private cdr = inject(ChangeDetectorRef);
   saving = signal(false);
   error = signal('');
   patientId = '';
@@ -132,9 +133,9 @@ export class VoyageurFormComponent implements OnInit {
   ngOnInit() {
     // Load dynamic vaccinations from the reference table
     this.http.get<Vaccination[]>('/api/vaccinations').subscribe((v) => {
-      const actives = v.filter((x) => x.actif);
+      const actives = v.filter((x: any) => x.actif);
       this.vaccinations.set(actives);
-      actives.forEach((vax) => {
+      actives.forEach((vax: any) => {
         if (!(vax.libelle in this.vaccinsState)) {
           this.vaccinsState[vax.libelle] = false;
         }
@@ -142,11 +143,12 @@ export class VoyageurFormComponent implements OnInit {
     });
 
     // Edit mode
-    const id = this.route.snapshot.paramMap.get('id');
+    const id = this.item() ? (this.item()?.id || this.item()?.config_id || this.item()?.patient_id || this.item()?.orientation_id) : null;
     if (id) {
       this.isEdit.set(true);
       this.patientId = id;
-      this.http.get<any>(`/api/patients/${id}`).subscribe((p) => {
+      const p = this.item();
+      if (p) {
         this.form = {
           accreditation_id: p.accreditation_id, nom: p.nom, prenom: p.prenom, sexe: p.sexe,
           date_naissance: p.date_naissance ?? '', nationalite: p.nationalite,
@@ -157,8 +159,9 @@ export class VoyageurFormComponent implements OnInit {
           Object.entries(p.statut_vaccinal).forEach(([k, v]) => {
             this.vaccinsState[k] = !!v;
           });
+          this.cdr.markForCheck();
         }
-      });
+      }
     }
   }
 
@@ -185,7 +188,7 @@ export class VoyageurFormComponent implements OnInit {
       error: () => {
         this.saving.set(false);
         this.error.set('Erreur lors de l\'enregistrement');
-      },
+      }
     });
   }
 }

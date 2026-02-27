@@ -83,7 +83,7 @@ import { ResultatLabo } from '../../core/models';
                   </a>
                 </td>
                 <td><span class="badge badge-neutral">{{ ex.type_examen }}</span></td>
-                <td class="font-medium">{{ ex.libelle_examen }}</td>
+                <td class="font-medium"><a [routerLink]="['/fosa/laboratoire', ex.resultat_id]" class="cell-link">{{ ex.libelle_examen }}</a></td>
                 <td class="text-muted"><a [routerLink]="['/fosa', ex.pec_id]" class="cell-link">{{ ex.pec_id.substring(0,8) }}...</a></td>
                 <td>
                   <span class="badge" [class]="getInterpretationBadge(ex.interpretation)">

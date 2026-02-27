@@ -41,7 +41,7 @@ import { CategorieLit } from '../../core/models';
                 <td>
                   <div [style.background]="cat.couleur_dashboard || '#ccc'" style="width:24px;height:24px;border-radius:4px"></div>
                 </td>
-                <td class="font-medium">{{ cat.code }}</td>
+                <td class="font-medium"><a [routerLink]="['/admin/categories-lits', cat.categorie_id, 'editer']" class="cell-link">{{ cat.code }}</a></td>
                 <td>{{ cat.libelle }}</td>
                 <td>
                   <span class="badge" [class]="cat.actif ? 'badge-success' : 'badge-neutral'">
