@@ -205,12 +205,20 @@ export const routes: Routes = [
                     {
                         path: '',
                         loadComponent: () =>
+                            import('./features/fosa/fosa-hub.component').then(
+                                (m) => m.FosaHubComponent
+                            ),
+                    },
+                    {
+                        path: 'admissions',
+                        data: { breadcrumb: 'Admissions' },
+                        loadComponent: () =>
                             import('./features/fosa/admission-list.component').then(
                                 (m) => m.AdmissionListComponent
                             ),
                     },
                     {
-                        path: 'admission',
+                        path: 'admissions/nouvelle',
                         data: { breadcrumb: 'Nouvelle admission' },
                         loadComponent: () =>
                             import('./features/fosa/admission-form.component').then(
@@ -218,7 +226,7 @@ export const routes: Routes = [
                             ),
                     },
                     {
-                        path: ':id/editer',
+                        path: 'admissions/:id/editer',
                         data: { breadcrumb: 'Modifier admission' },
                         resolve: { item: genericResolver('/api/prises-en-charge') },
                         loadComponent: () =>
@@ -235,7 +243,7 @@ export const routes: Routes = [
                             ),
                     },
                     {
-                        path: ':id',
+                        path: 'admissions/:id',
                         data: { breadcrumb: 'Détail admission' },
                         resolve: { item: genericResolver('/api/prises-en-charge') },
                         loadComponent: () =>

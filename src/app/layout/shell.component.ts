@@ -38,26 +38,27 @@ interface NavItem {
       <nav class="sidebar-nav">
         @for (item of visibleNav(); track item.route) {
           @if (item.children) {
-            <!-- Parent with children (Administration) -->
-            <div class="nav-group" [class.open]="adminOpen()">
+            <!-- Parent with children -->
+            <div class="nav-group" [class.open]="isGroupOpen(item.route)">
               <a class="nav-item nav-parent"
                  [routerLink]="item.route"
                  routerLinkActive="active"
                  [routerLinkActiveOptions]="{exact: true}"
                  [title]="item.label"
-                 (click)="toggleAdmin($event)">
+                 (click)="toggleGroup($event, item.route)">
                 <span class="nav-icon">{{ item.icon }}</span>
                 @if (!sidebarCollapsed()) {
                   <span class="nav-label">{{ item.label }}</span>
-                  <span class="nav-chevron">{{ adminOpen() ? '▾' : '›' }}</span>
+                  <span class="nav-chevron">{{ isGroupOpen(item.route) ? '▾' : '›' }}</span>
                 }
               </a>
-              @if (adminOpen() && !sidebarCollapsed()) {
+              @if (isGroupOpen(item.route) && !sidebarCollapsed()) {
                 <div class="nav-children">
                   @for (child of item.children; track child.route) {
                     <a class="nav-item nav-child"
                        [routerLink]="child.route"
                        routerLinkActive="active"
+                       [routerLinkActiveOptions]="{exact: true}"
                        [title]="child.label">
                       <span class="nav-icon">{{ child.icon }}</span>
                       <span class="nav-label">{{ child.label }}</span>
@@ -298,7 +299,8 @@ export class ShellComponent {
   private router = inject(Router);
   sidebarCollapsed = signal(false);
   mobileOpen = signal(false);
-  adminOpen = signal(false);
+  openGroups = signal<Record<string, boolean>>({});
+
   today = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long',
     year: 'numeric',
@@ -318,12 +320,18 @@ export class ShellComponent {
     { label: 'Journal d\'Audit', icon: '📋', route: '/admin/audit' },
   ];
 
+  private fosaChildren: NavItem[] = [
+    { label: 'Admissions', icon: '📥', route: '/fosa/admissions' },
+    { label: 'Plan des lits', icon: '🛏️', route: '/fosa/lits' },
+    { label: 'Laboratoire', icon: '🔬', route: '/fosa/laboratoire' },
+  ];
+
   private allNav: NavItem[] = [
     { label: 'Tableau de bord', icon: '📊', route: '/dashboard' },
     { label: 'Criblage PSF', icon: '🛫', route: '/psf', roles: ['ADMIN', 'DATA', 'OPERATEUR'] },
     { label: 'Consultations PMA', icon: '🩺', route: '/pma', roles: ['ADMIN', 'DATA', 'OPERATEUR'] },
     { label: 'Régulation', icon: '📞', route: '/regulation', roles: ['ADMIN', 'DATA', 'REG'] },
-    { label: 'Soins FOSA', icon: '🏥', route: '/fosa', roles: ['ADMIN', 'DATA', 'OPERATEUR'] },
+    { label: 'Soins FOSA', icon: '🏥', route: '/fosa', roles: ['ADMIN', 'DATA', 'OPERATEUR'], children: this.fosaChildren },
     { label: 'Stocks', icon: '📦', route: '/stocks', roles: ['ADMIN', 'DATA', 'OPERATEUR'] },
     { label: 'Alertes', icon: '🔔', route: '/alertes' },
     { label: 'Administration', icon: '⚙️', route: '/admin', roles: ['ADMIN'], children: this.adminChildren },
@@ -339,29 +347,37 @@ export class ShellComponent {
       )
     );
 
-    // Auto-open admin section if current URL is under /admin
+    // Auto-open groups if current URL is under a parent group
     this.router.events.pipe(
       filter((e) => e instanceof NavigationEnd)
     ).subscribe((e) => {
-      if ((e as NavigationEnd).urlAfterRedirects.startsWith('/admin')) {
-        this.adminOpen.set(true);
-      }
+      this.checkAutoExpand((e as NavigationEnd).urlAfterRedirects);
     });
 
     // Also check initial URL
-    if (this.router.url.startsWith('/admin')) {
-      this.adminOpen.set(true);
-    }
+    this.checkAutoExpand(this.router.url);
+  }
+
+  private checkAutoExpand(url: string) {
+    const groups = { ...this.openGroups() };
+    if (url.startsWith('/admin')) groups['/admin'] = true;
+    if (url.startsWith('/fosa')) groups['/fosa'] = true;
+    this.openGroups.set(groups);
   }
 
   toggleSidebar() {
     this.sidebarCollapsed.update((v) => !v);
   }
 
-  toggleAdmin(event: Event) {
-    // If clicking the chevron area or sidebar collapsed, just toggle
-    // Otherwise navigate to /admin hub
+  isGroupOpen(route: string): boolean {
+    return !!this.openGroups()[route];
+  }
+
+  toggleGroup(event: Event, route: string) {
     if (this.sidebarCollapsed()) return;
-    this.adminOpen.update((v) => !v);
+    this.openGroups.update((groups) => ({
+      ...groups,
+      [route]: !groups[route]
+    }));
   }
 }
