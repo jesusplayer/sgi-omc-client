@@ -1,8 +1,8 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Utilisateur, Role } from '../../core/models';
-import { GenericGridComponent } from '../../shared/components/generic-grid/generic-grid.component';
-import { GridColumn, GridRowAction } from '../../shared/components/generic-grid/grid.models';
+import { Utilisateur, Role } from '../../../core/models';
+import { GenericGridComponent } from '../../../shared/components/generic-grid/generic-grid.component';
+import { GridColumn, GridRowAction } from '../../../shared/components/generic-grid/grid.models';
 
 @Component({
   selector: 'app-utilisateur-list',
@@ -38,7 +38,7 @@ export class UtilisateurListComponent implements OnInit {
 
   columns: GridColumn[] = [
     { field: 'login', header: 'Login', valueGetter: (u) => u.login, cellClass: 'font-mono' },
-    { field: 'nomComplet', header: 'Nom Prénom', valueGetter: (u) => `${u.nom} ${u.prenom}`, type: 'link', routerLink: (u) => ['/admin/utilisateurs', u.user_id, 'editer'], cellClass: 'font-medium' },
+    { field: 'nomComplet', header: 'Nom Prénom', valueGetter: (u) => `${u.nom} ${u.prenom}`, type: 'link', routerLink: (u) => ['/admin/utilisateurs', u.user_id], cellClass: 'font-medium' },
     { field: 'email', header: 'Email', valueGetter: (u) => u.email ?? '—' },
     { field: 'roleName', header: 'Rôle', type: 'badge', badgeColor: () => 'badge-info' },
     { field: 'site', header: 'Site', valueGetter: (u) => u.site_principal_id ?? '—' },

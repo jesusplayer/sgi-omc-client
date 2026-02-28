@@ -2,8 +2,8 @@ import { Component, inject, signal, OnInit, ChangeDetectionStrategy, input } fro
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { ConfigurationAlerte, Operateur, CanalNotification } from '@app/core/models';
-import { GenericFormComponent } from '../../shared/components/generic-form/generic-form.component';
-import { FormSection } from '../../shared/models/form.models';
+import { GenericFormComponent } from '../../../shared/components/generic-form/generic-form.component';
+import { FormSection } from '../../../shared/models/form.models';
 
 @Component({
   selector: 'app-alerte-config-form',

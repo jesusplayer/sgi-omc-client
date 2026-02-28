@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Site } from '../../core/models';
+import { Site } from '../../../core/models';
 import { map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 

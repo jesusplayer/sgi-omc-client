@@ -2,7 +2,7 @@ import { Component, inject, signal, OnInit, ChangeDetectorRef, input, computed, 
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
-import { Vaccination } from '../../core/models';
+import { Vaccin } from '../../core/models';
 import { GenericFormComponent } from '../../shared/components/generic-form/generic-form.component';
 import { FormSection } from '../../shared/models/form.models';
 
@@ -48,7 +48,7 @@ export class VoyageurFormComponent implements OnInit {
   error = signal('');
   patientId = '';
 
-  vaccinations = signal<Vaccination[]>([]);
+  vaccins = signal<Vaccin[]>([]);
 
   form: any = {
     accreditation_id: '', nom: '', prenom: '', sexe: 'M', date_naissance: '',
@@ -56,7 +56,7 @@ export class VoyageurFormComponent implements OnInit {
   };
 
   currentSchema = computed(() => {
-    const vaxFields = this.vaccinations().map(vax => ({
+    const vaxFields = this.vaccins().map(vax => ({
       key: `vax_${vax.libelle}`,
       label: vax.obligatoire ? `${vax.libelle} (Requis)` : vax.libelle,
       type: 'checkbox' as const
@@ -105,11 +105,11 @@ export class VoyageurFormComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.http.get<Vaccination[]>('/api/vaccinations').subscribe((v) => {
+    this.http.get<Vaccin[]>('/api/vaccins').subscribe((v) => {
       const actives = v.filter((x: any) => x.actif);
-      this.vaccinations.set(actives);
+      this.vaccins.set(actives);
 
-      // Initialize the checkboxes based on vaccinations dynamically downloaded
+      // Initialize the checkboxes based on vaccins dynamically downloaded
       actives.forEach((vax: any) => {
         if (!(`vax_${vax.libelle}` in this.form)) {
           this.form[`vax_${vax.libelle}`] = false;

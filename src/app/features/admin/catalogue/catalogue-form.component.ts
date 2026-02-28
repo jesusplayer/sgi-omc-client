@@ -1,9 +1,9 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, input, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { CatalogueProduit } from '../../core/models';
-import { GenericFormComponent } from '../../shared/components/generic-form/generic-form.component';
-import { FormSection } from '../../shared/models/form.models';
+import { CatalogueProduit } from '../../../core/models';
+import { GenericFormComponent } from '../../../shared/components/generic-form/generic-form.component';
+import { FormSection } from '../../../shared/models/form.models';
 
 @Component({
   selector: 'app-catalogue-form',

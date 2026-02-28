@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { Role } from '../../core/models';
+import { Role } from '../../../core/models';
 import { switchMap, map, catchError, of } from 'rxjs';
 
 @Component({

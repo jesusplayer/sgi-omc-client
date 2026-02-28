@@ -1,8 +1,8 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { CategorieLit } from '../../core/models';
-import { GenericGridComponent } from '../../shared/components/generic-grid/generic-grid.component';
-import { GridColumn, GridRowAction, GridHeaderAction } from '../../shared/components/generic-grid/grid.models';
+import { CategorieLit } from '../../../../core/models';
+import { GenericGridComponent } from '../../../../shared/components/generic-grid/generic-grid.component';
+import { GridColumn, GridRowAction, GridHeaderAction } from '../../../../shared/components/generic-grid/grid.models';
 
 @Component({
   selector: 'app-categorie-lit-list',
@@ -49,6 +49,7 @@ export class CategorieLitListComponent implements OnInit {
   ];
 
   rowActions: GridRowAction[] = [
+    { icon: '👁️', label: 'Détail', title: 'Détail', routeFn: (c) => ['/admin/categories-lits', c.categorie_id], class: 'btn-info' },
     { icon: '✏️', label: 'Éditer', title: 'Éditer', routeFn: (c) => ['/admin/categories-lits', c.categorie_id, 'editer'], class: 'btn-outline' }
   ];
 

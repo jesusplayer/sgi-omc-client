@@ -120,6 +120,18 @@ export const fakeBackendInterceptor: HttpInterceptorFn = (req, next) => {
         if (url.match(/^\/api\/prises-en-charge\/[\w-]+$/) && method === 'DELETE')
             return handleDelete(db.prises_en_charge, extractId(url));
 
+        // ── LABORATOIRE ──
+        if (url === '/api/laboratoire' && method === 'GET')
+            return ok(await db.resultats_labo.toArray());
+        if (url === '/api/laboratoire' && method === 'POST')
+            return handleCreate(db.resultats_labo, req.body, 'resultat_id');
+        if (url.match(/^\/api\/laboratoire\/[\w-]+$/) && method === 'GET')
+            return handleGetById(db.resultats_labo, extractId(url), 'resultat_id');
+        if (url.match(/^\/api\/laboratoire\/[\w-]+$/) && method === 'PUT')
+            return handleUpdate(db.resultats_labo, extractId(url), req.body, 'resultat_id');
+        if (url.match(/^\/api\/laboratoire\/[\w-]+$/) && method === 'DELETE')
+            return handleDelete(db.resultats_labo, extractId(url));
+
         // ── LITS ──
         if (url === '/api/categories-lits' && method === 'GET')
             return ok(await db.categories_lit.filter((c) => c.actif).toArray());
@@ -135,8 +147,16 @@ export const fakeBackendInterceptor: HttpInterceptorFn = (req, next) => {
             const siteId = extractId(url);
             return ok(await db.lits.where('site_id').equals(siteId).toArray());
         }
+        if (url.match(/^\/api\/lits\/categorie\/[\w-]+$/) && method === 'GET') {
+            const catId = extractId(url);
+            return ok(await db.lits.where('categorie_id').equals(catId).toArray());
+        }
+        if (url.match(/^\/api\/lits\/[\w-]+$/) && method === 'GET')
+            return handleGetById(db.lits, extractId(url), 'lit_id');
         if (url.match(/^\/api\/lits\/[\w-]+$/) && method === 'PUT')
             return handleUpdate(db.lits, extractId(url), req.body, 'lit_id');
+        if (url.match(/^\/api\/lits\/[\w-]+$/) && method === 'DELETE')
+            return handleDelete(db.lits, extractId(url));
 
         // ── OCCUPATIONS LIT ──
         if (url === '/api/occupations-lit' && method === 'GET')
@@ -210,17 +230,17 @@ export const fakeBackendInterceptor: HttpInterceptorFn = (req, next) => {
         if (url.match(/^\/api\/roles\/[\w-]+$/) && method === 'GET')
             return handleGetById(db.roles, extractId(url), 'role_id');
 
-        // ── VACCINATIONS ──
-        if (url === '/api/vaccinations' && method === 'GET')
-            return ok(await db.vaccinations.toArray());
-        if (url === '/api/vaccinations' && method === 'POST')
-            return handleCreate(db.vaccinations, req.body, 'vaccination_id');
-        if (url.match(/^\/api\/vaccinations\/[\w-]+$/) && method === 'GET')
-            return handleGetById(db.vaccinations, extractId(url), 'vaccination_id');
-        if (url.match(/^\/api\/vaccinations\/[\w-]+$/) && method === 'PUT')
-            return handleUpdate(db.vaccinations, extractId(url), req.body, 'vaccination_id');
-        if (url.match(/^\/api\/vaccinations\/[\w-]+$/) && method === 'DELETE')
-            return handleDelete(db.vaccinations, extractId(url));
+        // ── VACCINS ──
+        if (url === '/api/vaccins' && method === 'GET')
+            return ok(await db.vaccins.toArray());
+        if (url === '/api/vaccins' && method === 'POST')
+            return handleCreate(db.vaccins, req.body, 'vaccin_id');
+        if (url.match(/^\/api\/vaccins\/[\w-]+$/) && method === 'GET')
+            return handleGetById(db.vaccins, extractId(url), 'vaccin_id');
+        if (url.match(/^\/api\/vaccins\/[\w-]+$/) && method === 'PUT')
+            return handleUpdate(db.vaccins, extractId(url), req.body, 'vaccin_id');
+        if (url.match(/^\/api\/vaccins\/[\w-]+$/) && method === 'DELETE')
+            return handleDelete(db.vaccins, extractId(url));
 
         // ── PATIENTS DELETE ──
         if (url.match(/^\/api\/patients\/[\w-]+$/) && method === 'DELETE')

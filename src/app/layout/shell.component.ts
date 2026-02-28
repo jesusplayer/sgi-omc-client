@@ -310,7 +310,7 @@ export class ShellComponent {
 
   private adminChildren: NavItem[] = [
     { label: 'Utilisateurs', icon: '👥', route: '/admin/utilisateurs' },
-    { label: 'Vaccinations', icon: '💉', route: '/admin/vaccinations' },
+    { label: 'Vaccins', icon: '💉', route: '/admin/vaccins' },
     { label: 'Sites', icon: '🏥', route: '/admin/sites' },
     { label: 'Catégories Lits', icon: '🗂️', route: '/admin/categories-lits' },
     { label: 'Lits FOSA', icon: '🛏️', route: '/admin/lits' },

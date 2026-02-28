@@ -1,8 +1,8 @@
 import { Component, inject, signal, OnInit, computed, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { CatalogueProduit } from '../../core/models';
-import { GenericGridComponent } from '../../shared/components/generic-grid/generic-grid.component';
-import { GridColumn, GridRowAction, GridHeaderAction } from '../../shared/components/generic-grid/grid.models';
+import { CatalogueProduit } from '../../../core/models';
+import { GenericGridComponent } from '../../../shared/components/generic-grid/generic-grid.component';
+import { GridColumn, GridRowAction, GridHeaderAction } from '../../../shared/components/generic-grid/grid.models';
 
 @Component({
   selector: 'app-catalogue-list',

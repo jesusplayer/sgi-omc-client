@@ -1,9 +1,9 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { CategorieLit } from '../../core/models';
-import { GenericFormComponent } from '../../shared/components/generic-form/generic-form.component';
-import { FormSection } from '../../shared/models/form.models';
+import { CategorieLit } from '../../../../core/models';
+import { GenericFormComponent } from '../../../../shared/components/generic-form/generic-form.component';
+import { FormSection } from '../../../../shared/models/form.models';
 
 @Component({
   selector: 'app-categorie-lit-form',

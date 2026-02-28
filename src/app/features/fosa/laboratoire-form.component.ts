@@ -105,7 +105,7 @@ export class LaboratoireFormComponent implements OnInit {
   };
 
   ngOnInit() {
-    const id = this.item() ? (this.item()?.id || this.item()?.config_id || this.item()?.patient_id || this.item()?.orientation_id) : null;
+    const id = this.item() ? (this.item()?.resultat_id || this.item()?.id) : null;
     if (id) {
       this.isEdit.set(true);
       this.resultatId = id;

@@ -1,7 +1,7 @@
 import { computed, Component, inject, signal, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink, Router } from '@angular/router';
-import { ConfigurationAlerte } from '../../core/models';
+import { ConfigurationAlerte } from '../../../core/models';
 
 @Component({
   selector: 'app-alerte-config-detail',

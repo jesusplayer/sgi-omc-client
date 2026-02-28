@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, inject, input, computed, effect } f
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { GenericFormComponent } from '../../shared/components/generic-form/generic-form.component';
-import { FormSection } from '../../shared/models/form.models';
-import { Role, Site } from '../../core/models';
+import { GenericFormComponent } from '../../../shared/components/generic-form/generic-form.component';
+import { FormSection } from '../../../shared/models/form.models';
+import { Role, Site } from '../../../core/models';
 
 @Component({
     selector: 'app-utilisateur-form',

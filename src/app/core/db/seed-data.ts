@@ -1,9 +1,9 @@
 import { db } from './sgi-database';
 import {
     Site, Patient, TracingVol, Consultation, Orientation,
-    AppelRegulation, PriseEnCharge, CategorieLit, Lit, OccupationLit,
+    AppelRegulation, PriseEnCharge, ResultatLabo, CategorieLit, Lit, OccupationLit,
     CatalogueProduit, Stock, ConsommationStock,
-    ConfigurationAlerte, Alerte, Role, Utilisateur, Vaccination,
+    ConfigurationAlerte, Alerte, Role, Utilisateur, Vaccin,
 } from '../models';
 
 // Helper
@@ -128,6 +128,16 @@ export async function seedDatabase(): Promise<void> {
         { pec_id: 'pec-001', orientation_id: 'orient-001', fosa_id: 'site-fosa-chu', medecin_id: 'user-fosa1', patient_id: 'pat-003', lit_id: 'lit-chu-std-01', admission_datetime: d(-21), etat_entree: 'GRAVE', diagnostic_entree: 'Syndrome grippal sévère', diagnostic_final: 'J11', libelle_diagnostic: 'Grippe, virus non identifié', traitements: [{ medicament: 'Oseltamivir', dose: '75mg', voie: 'Orale', duree: '5 jours' }, { medicament: 'Paracétamol', dose: '1g', voie: 'IV', duree: 'PRN' }], oxygene_requis: false, reanimation: false, transfusion: false, created_at: d(-21) },
     ];
 
+    // ──── RESULTATS LABO ────
+    const labResults: ResultatLabo[] = [
+        { resultat_id: 'lab-001', pec_id: 'pec-001', prescripteur_id: 'user-fosa1', type_examen: 'BIOLOGIE', libelle_examen: 'Glycémie à jeun', valeur: '0.95', valeur_numerique: 0.95, unite: 'g/L', valeur_normale_min: 0.70, valeur_normale_max: 1.10, interpretation: 'NORMAL', datetime_prelevement: d(-20.5), datetime_resultat: d(-19), created_at: d(-20.5) },
+        { resultat_id: 'lab-002', pec_id: 'pec-001', prescripteur_id: 'user-fosa1', type_examen: 'BIOLOGIE', libelle_examen: 'NFS (Hémoglobine)', valeur: '12.4', valeur_numerique: 12.4, unite: 'g/dL', valeur_normale_min: 13.0, valeur_normale_max: 17.0, interpretation: 'ANORMAL_BAS', datetime_prelevement: d(-20.5), datetime_resultat: d(-19.2), created_at: d(-20.5) },
+        { resultat_id: 'lab-003', pec_id: 'pec-001', prescripteur_id: 'user-fosa1', type_examen: 'BIOLOGIE', libelle_examen: 'Test Rapide Paludisme', valeur: 'POSITIF', interpretation: 'POSITIF', datetime_prelevement: d(-20.2), datetime_resultat: d(-19.8), created_at: d(-20.2) },
+        { resultat_id: 'lab-004', pec_id: 'pec-001', prescripteur_id: 'user-fosa1', type_examen: 'PCR', libelle_examen: 'PCR COVID-19', interpretation: 'EN_ATTENTE', datetime_prelevement: d(-18), created_at: d(-18) },
+        { resultat_id: 'lab-005', pec_id: 'pec-001', prescripteur_id: 'user-fosa1', type_examen: 'BIOLOGIE', libelle_examen: 'Créatininémie', valeur: '11.2', valeur_numerique: 11.2, unite: 'mg/L', valeur_normale_min: 7.0, valeur_normale_max: 13.0, interpretation: 'NORMAL', datetime_prelevement: d(-18), datetime_resultat: d(-17), created_at: d(-18) },
+        { resultat_id: 'lab-006', pec_id: 'pec-001', prescripteur_id: 'user-fosa1', type_examen: 'IMAGERIE', libelle_examen: 'Radiographie Thorax', interpretation: 'EN_ATTENTE', datetime_prelevement: d(-10), created_at: d(-10) },
+    ];
+
     // ──── CATALOGUE PRODUITS ────
     const produits: CatalogueProduit[] = [
         { produit_id: 'prod-001', code_produit: 'MED-PARA-1G', designation: 'Paracétamol 1g comprimés', categorie: 'MEDICAMENT', dci: 'Paracétamol', forme: 'Comprimé', dosage: '1000mg', unite_base: 'comprimés', actif: true, necessite_froid: false, created_at: now() },
@@ -183,22 +193,22 @@ export async function seedDatabase(): Promise<void> {
         { config_id: uuid(), code_regle: 'OCCUPATION_LITS', libelle: 'Taux d\'occupation lits FOSA', entite_source: 'SITE', champ_surveille: 'taux_occupation', operateur: 'GTE', seuil_niveau1: 75, seuil_niveau2: 90, seuil_niveau3: 100, canaux_notif: ['PUSH', 'IN_APP', 'SMS'], roles_destinataires: ['DATA', 'REG', 'ADMIN'], active: true, cooldown_min: 15 },
     ];
 
-    // ──── VACCINATIONS ────
-    const vaccinations: Vaccination[] = [
-        { vaccination_id: 'vac-001', libelle: 'Fièvre jaune', obligatoire: true, actif: true, created_at: now() },
-        { vaccination_id: 'vac-002', libelle: 'COVID-19', obligatoire: true, actif: true, created_at: now() },
-        { vaccination_id: 'vac-003', libelle: 'Méningite', obligatoire: true, actif: true, created_at: now() },
-        { vaccination_id: 'vac-004', libelle: 'Poliomyélite', obligatoire: false, actif: true, created_at: now() },
-        { vaccination_id: 'vac-005', libelle: 'Hépatite B', obligatoire: false, actif: true, created_at: now() },
-        { vaccination_id: 'vac-006', libelle: 'Typhoid', obligatoire: false, actif: true, created_at: now() },
+    // ──── VACCINS ────
+    const vaccins: Vaccin[] = [
+        { vaccin_id: 'vac-001', libelle: 'Fièvre jaune', obligatoire: true, actif: true, created_at: now() },
+        { vaccin_id: 'vac-002', libelle: 'COVID-19', obligatoire: true, actif: true, created_at: now() },
+        { vaccin_id: 'vac-003', libelle: 'Méningite', obligatoire: true, actif: true, created_at: now() },
+        { vaccin_id: 'vac-004', libelle: 'Poliomyélite', obligatoire: false, actif: true, created_at: now() },
+        { vaccin_id: 'vac-005', libelle: 'Hépatite B', obligatoire: false, actif: true, created_at: now() },
+        { vaccin_id: 'vac-006', libelle: 'Typhoid', obligatoire: false, actif: true, created_at: now() },
     ];
 
     // ──── BULK INSERT ────
     await db.transaction('rw', [
         db.roles, db.sites, db.utilisateurs, db.categories_lit, db.lits,
         db.patients, db.tracing_vol, db.consultations, db.orientations,
-        db.prises_en_charge, db.catalogue_produits, db.stocks, db.alertes,
-        db.configurations_alerte, db.vaccinations,
+        db.prises_en_charge, db.resultats_labo, db.catalogue_produits, db.stocks, db.alertes,
+        db.configurations_alerte, db.vaccins,
     ], async () => {
         if (await db.roles.count() === 0) await db.roles.bulkAdd(roles);
         if (await db.sites.count() === 0) await db.sites.bulkAdd(sites);
@@ -210,11 +220,12 @@ export async function seedDatabase(): Promise<void> {
         if (await db.consultations.count() === 0) await db.consultations.bulkAdd(consultations);
         if (await db.orientations.count() === 0) await db.orientations.bulkAdd(orientations);
         if (await db.prises_en_charge.count() === 0) await db.prises_en_charge.bulkAdd(pecs);
+        if (await db.resultats_labo.count() === 0) await db.resultats_labo.bulkAdd(labResults);
         if (await db.catalogue_produits.count() === 0) await db.catalogue_produits.bulkAdd(produits);
         if (await db.stocks.count() === 0) await db.stocks.bulkAdd(stocks);
         if (await db.alertes.count() === 0) await db.alertes.bulkAdd(alertes);
         if (await db.configurations_alerte.count() === 0) await db.configurations_alerte.bulkAdd(configs);
-        if (await db.vaccinations.count() === 0) await db.vaccinations.bulkAdd(vaccinations);
+        if (await db.vaccins.count() === 0) await db.vaccins.bulkAdd(vaccins);
     });
 
     console.log('✅ SGI OMC Database seeded successfully');

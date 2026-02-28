@@ -4,11 +4,11 @@ import { Router, RouterLink } from '@angular/router';
 import { ResultatLabo } from '../../core/models';
 
 @Component({
-    selector: 'app-laboratoire-detail',
-    standalone: true,
-    imports: [RouterLink],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-laboratoire-detail',
+  standalone: true,
+  imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     @if (examen()) {
       <div class="page-header">
         <div>
@@ -107,7 +107,7 @@ import { ResultatLabo } from '../../core/models';
       </div>
     }
   `,
-    styles: [`
+  styles: [`
     .detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
     .detail-item { display: flex; flex-direction: column; gap: 0.25rem; }
     .detail-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
@@ -115,33 +115,32 @@ import { ResultatLabo } from '../../core/models';
   `]
 })
 export class LaboratoireDetailComponent implements OnInit {
-    private http = inject(HttpClient);
-    item = input<any | null>(null);
+  private http = inject(HttpClient);
+  item = input<any | null>(null);
 
-    examen = signal<ResultatLabo | null>(null);
+  examen = signal<ResultatLabo | null>(null);
 
-    ngOnInit() {
-        const id = this.item() ? (this.item()?.id || this.item()?.config_id || this.item()?.patient_id || this.item()?.orientation_id) : null;
-        if (id) {
-            
-        }
+  ngOnInit() {
+    if (this.item()) {
+      this.examen.set(this.item());
     }
+  }
 
-    formatDate(iso?: string): string {
-        if (!iso) return '—';
-        return new Date(iso).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-    }
+  formatDate(iso?: string): string {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  }
 
-    getInterpretationBadge(interpretation: string): string {
-        switch (interpretation) {
-            case 'NORMAL':
-            case 'NEGATIF': return 'badge-success';
-            case 'EN_ATTENTE': return 'badge-warning';
-            case 'CRITIQUE': return 'badge-danger';
-            case 'ANORMAL_BAS':
-            case 'ANORMAL_HAUT':
-            case 'POSITIF': return 'badge-danger';
-            default: return 'badge-neutral';
-        }
+  getInterpretationBadge(interpretation: string): string {
+    switch (interpretation) {
+      case 'NORMAL':
+      case 'NEGATIF': return 'badge-success';
+      case 'EN_ATTENTE': return 'badge-warning';
+      case 'CRITIQUE': return 'badge-danger';
+      case 'ANORMAL_BAS':
+      case 'ANORMAL_HAUT':
+      case 'POSITIF': return 'badge-danger';
+      default: return 'badge-neutral';
     }
+  }
 }

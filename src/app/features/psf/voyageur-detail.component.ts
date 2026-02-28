@@ -1,7 +1,7 @@
 import { computed, Component, inject, signal, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
-import { Patient, TracingVol, Vaccination } from '../../core/models';
+import { Patient, TracingVol, Vaccin } from '../../core/models';
 
 @Component({
   selector: 'app-voyageur-detail',
@@ -40,9 +40,9 @@ import { Patient, TracingVol, Vaccination } from '../../core/models';
 
         <div class="card">
           <h3 style="margin-bottom:1rem">💉 Statut vaccinal</h3>
-          @if (vaccinations().length > 0) {
+          @if (vaccins().length > 0) {
             <div class="detail-grid">
-              @for (v of vaccinations(); track v.vaccination_id) {
+              @for (v of vaccins(); track v.vaccin_id) {
                 <div class="detail-row">
                   <span class="detail-label">
                     {{ v.libelle }}
@@ -92,7 +92,7 @@ export class VoyageurDetailComponent implements OnInit {
 
   item = input<Patient | null>(null);
   tracing = signal<TracingVol | null>(null);
-  vaccinations = signal<Vaccination[]>([]);
+  vaccins = signal<Vaccin[]>([]);
 
   ngOnInit() {
 
@@ -102,8 +102,8 @@ export class VoyageurDetailComponent implements OnInit {
       const t = all.find((x) => x.patient_id === id);
       if (t) this.tracing.set(t);
     });
-    this.http.get<Vaccination[]>('/api/vaccinations').subscribe((v) =>
-      this.vaccinations.set(v.filter((x) => x.actif))
+    this.http.get<Vaccin[]>('/api/vaccins').subscribe((v) =>
+      this.vaccins.set(v.filter((x) => x.actif))
     );
   }
 

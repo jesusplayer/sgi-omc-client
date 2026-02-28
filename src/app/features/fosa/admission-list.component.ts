@@ -31,7 +31,7 @@ export class AdmissionListComponent implements OnInit {
     {
       field: 'patient', header: 'Patient', type: 'link',
       valueGetter: (p) => this.getPatientName(p.patient_id),
-      routerLink: (p) => ['/fosa', p.pec_id],
+      routerLink: (p) => ['/fosa/admissions', p.pec_id],
       cellClass: 'font-medium'
     },
     {

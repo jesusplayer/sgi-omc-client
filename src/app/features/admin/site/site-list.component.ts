@@ -1,9 +1,9 @@
 import { Component, inject, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Site } from '../../core/models';
-import { SiteService } from '../../core/services/site.service';
-import { GenericGridComponent } from '../../shared/components/generic-grid/generic-grid.component';
-import { GridColumn, GridRowAction, GridHeaderAction } from '../../shared/components/generic-grid/grid.models';
+import { Site } from '../../../core/models';
+import { SiteService } from '../../../core/services/site.service';
+import { GenericGridComponent } from '../../../shared/components/generic-grid/generic-grid.component';
+import { GridColumn, GridRowAction, GridHeaderAction } from '../../../shared/components/generic-grid/grid.models';
 
 @Component({
   selector: 'app-site-list',

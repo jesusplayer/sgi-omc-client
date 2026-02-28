@@ -1,8 +1,8 @@
 import { Component, inject, signal, OnInit, computed, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Lit, Site, CategorieLit } from '../../core/models';
-import { GenericGridComponent } from '../../shared/components/generic-grid/generic-grid.component';
-import { GridColumn, GridRowAction, GridHeaderAction } from '../../shared/components/generic-grid/grid.models';
+import { Lit, Site, CategorieLit } from '../../../core/models';
+import { GenericGridComponent } from '../../../shared/components/generic-grid/generic-grid.component';
+import { GridColumn, GridRowAction, GridHeaderAction } from '../../../shared/components/generic-grid/grid.models';
 
 @Component({
   selector: 'app-lit-list',
@@ -62,7 +62,7 @@ export class LitListComponent implements OnInit {
 
   columns: GridColumn[] = [
     { field: 'site', header: 'Site FOSA', valueGetter: (l) => this.getSiteName(l.site_id) },
-    { field: 'numero', header: 'Numéro', type: 'link', valueGetter: (l) => l.numero_lit, routerLink: (l) => ['/admin/lits', l.lit_id, 'editer'], cellClass: 'font-medium' },
+    { field: 'numero', header: 'Numéro', type: 'link', valueGetter: (l) => l.numero_lit, routerLink: (l) => ['/admin/lits', l.lit_id], cellClass: 'font-medium' },
     { field: 'categorie', header: 'Catégorie', valueGetter: (l) => this.getCategoryName(l.categorie_id) },
     { field: 'statut', header: 'Statut', type: 'badge', valueGetter: (l) => l.statut, badgeColor: (l) => this.getStatusBadge(l.statut) },
     { field: 'updated_at', header: 'Dernière Maj.', type: 'date', valueGetter: (l) => l.updated_at, cellClass: 'text-sm text-muted' },
